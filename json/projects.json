@@ -1,0 +1,103 @@
+[
+  {
+    "id": "prj-1",
+    "key": "PRJ-101",
+    "title": "Penyusunan Standard Operating Procedure (SOP) Internal",
+    "description": "Standardisasi alur kerja lintas divisi untuk memastikan kepatuhan ISO 9001 & tata kelola.",
+    "categoryType": "department",
+    "division": "Business Quality & Governance",
+    "department": "Regulatory Compliance",
+    "status": "in-progress",
+    "priority": "high",
+    "assignee": "Budi Santoso",
+    "startDate": "2025-01-10",
+    "dueDate": "2025-04-30",
+    "tags": ["Governance", "SOP", "Compliance"],
+    "tasks": [
+      { "id": "t-1", "title": "Drafting dokumen DWP & SOP Finance", "done": true },
+      { "id": "t-2", "title": "Review oleh Head of Division", "done": true },
+      { "id": "t-3", "title": "Uji coba implementasi lapang", "done": false },
+      { "id": "t-4", "title": "Finalisasi approval Directorate", "done": false }
+    ]
+  },
+  {
+    "id": "prj-2",
+    "key": "PRJ-102",
+    "title": "Audit Kepatuhan Tata Kelola & Job Architecture",
+    "description": "Verifikasi keselarasan 14 bagian Job Description dengan implementasi operasional cabang.",
+    "categoryType": "department",
+    "division": "Business Quality & Governance",
+    "department": "Talent Acquisition",
+    "status": "todo",
+    "priority": "medium",
+    "assignee": "Dewi Sartika",
+    "startDate": "2025-03-01",
+    "dueDate": "2025-05-15",
+    "tags": ["Audit", "Job-Architecture"],
+    "tasks": [
+      { "id": "t-5", "title": "Pengumpulan sampling JD lapangan", "done": false },
+      { "id": "t-6", "title": "Gap analysis KSAO & KPI", "done": false }
+    ]
+  },
+  {
+    "id": "prj-3",
+    "key": "PRJ-201",
+    "title": "Ekspansi Branch Baru Jawa Timur (Malang & Kediri)",
+    "description": "Proses feasibility study, survei lokasi, sewa gedung, dan instalasi feeder backbone.",
+    "categoryType": "department",
+    "division": "Strategic Growth & Product",
+    "department": "Branch Expansion",
+    "status": "in-progress",
+    "priority": "high",
+    "assignee": "Rian Hidayat",
+    "startDate": "2025-02-01",
+    "dueDate": "2025-06-30",
+    "tags": ["Expansion", "Open-Branch", "Network"],
+    "tasks": [
+      { "id": "t-7", "title": "Survei 5 opsi lokasi POP ODC", "done": true },
+      { "id": "t-8", "title": "Approval sewa gedung ruko", "done": true },
+      { "id": "t-9", "title": "Penarikan kabel FO & sambungan PLN", "done": false },
+      { "id": "t-10", "title": "Grand Launching & operasional", "done": false }
+    ]
+  },
+  {
+    "id": "prj-4",
+    "key": "PRJ-202",
+    "title": "Product Growth & Kuartal Q2 Strategy",
+    "description": "Perencanaan program promosi produk baru segmen retail dan peningkatan ARPU.",
+    "categoryType": "division",
+    "division": "Strategic Growth & Product",
+    "department": "",
+    "status": "review",
+    "priority": "urgent",
+    "assignee": "Siti Nurhaliza",
+    "startDate": "2025-01-15",
+    "dueDate": "2025-03-31",
+    "tags": ["Product", "Growth", "Marketing"],
+    "tasks": [
+      { "id": "t-11", "title": "Analisa benchmark kompetitor", "done": true },
+      { "id": "t-12", "title": "Penyusunan bundling promo Q2", "done": true },
+      { "id": "t-13", "title": "Review Direksi & Finance", "done": false }
+    ]
+  },
+  {
+    "id": "prj-5",
+    "key": "PRJ-301",
+    "title": "Integrasi Dashboard Pemantauan Kinerja Cabang",
+    "description": "Sinkronisasi data monitoring Open Branch, survei BOF, dan laporan berkala real-time.",
+    "categoryType": "division",
+    "division": "Business Quality & Governance",
+    "department": "",
+    "status": "done",
+    "priority": "low",
+    "assignee": "Ahmad Fauzi",
+    "startDate": "2024-11-01",
+    "dueDate": "2025-02-20",
+    "tags": ["Dashboard", "Analytics", "Tech"],
+    "tasks": [
+      { "id": "t-14", "title": "Perancangan UI dashboard monitoring", "done": true },
+      { "id": "t-15", "title": "Integrasi tabel data BOF & ODC", "done": true },
+      { "id": "t-16", "title": "UAT user branch & rollout", "done": true }
+    ]
+  }
+]

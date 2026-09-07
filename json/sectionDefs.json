@@ -1,0 +1,72 @@
+[
+  {
+    "n": "01",
+    "key": "identity",
+    "title": "Identitas Pekerjaan"
+  },
+  {
+    "n": "02",
+    "key": "description",
+    "title": "Deskripsi Jabatan"
+  },
+  {
+    "n": "03",
+    "key": "objectives",
+    "title": "Tujuan Jabatan / Output Utama"
+  },
+  {
+    "n": "04",
+    "key": "authorities",
+    "title": "Wewenang"
+  },
+  {
+    "n": "05",
+    "key": "responsibilities",
+    "title": "Tugas dan Tanggung Jawab"
+  },
+  {
+    "n": "06",
+    "key": "kpi",
+    "title": "Standar Kinerja / KPI / SLA"
+  },
+  {
+    "n": "07",
+    "key": "ksao",
+    "title": "Pemetaan Kompetensi (KSAO)"
+  },
+  {
+    "n": "08",
+    "key": "requirements",
+    "title": "Persyaratan Jabatan"
+  },
+  {
+    "n": "09",
+    "key": "risks",
+    "title": "Risiko Jabatan"
+  },
+  {
+    "n": "10",
+    "key": "regulations",
+    "title": "Regulasi / Standar yang Berlaku"
+  },
+  {
+    "n": "11",
+    "key": "leadership",
+    "title": "Tanggung Jawab Kepemimpinan"
+  },
+  {
+    "n": "12",
+    "key": "assessments",
+    "title": "Bukti / Metode Asesmen"
+  },
+  {
+    "n": "13",
+    "key": "communication",
+    "title": "Hubungan Kerja / Komunikasi"
+  },
+  {
+    "n": "14",
+    "key": "candidateCompetencies",
+    "title": "Kandidat Kompetensi & Kategorisasi"
+  }
+]

@@ -1,0 +1,592 @@
+{
+  "attendance": [
+    {
+      "id": "att-1",
+      "employeeName": "Budi Santoso",
+      "employeeId": "EMP-001",
+      "division": "Business Quality & Governance",
+      "role": "Head of Department Talent Acquisition",
+      "date": "2026-09-07",
+      "clockIn": "07:54",
+      "clockOut": "17:08",
+      "location": "Head Office - Malang",
+      "status": "Hadir Tepat Waktu",
+      "notes": "Clock-in via biometric portal"
+    },
+    {
+      "id": "att-2",
+      "employeeName": "Dimas Rantung",
+      "employeeId": "EMP-002",
+      "division": "Strategic Growth & Product",
+      "role": "Project Leader Open Branch",
+      "date": "2026-09-07",
+      "clockIn": "08:12",
+      "clockOut": "-",
+      "location": "Branch Gempol (Site Survey)",
+      "status": "Tugas Luar",
+      "notes": "Survey titik ODC Melikan & koordinasi permit"
+    },
+    {
+      "id": "att-3",
+      "employeeName": "Dewi Sartika",
+      "employeeId": "EMP-003",
+      "division": "Business Quality & Governance",
+      "role": "Compliance Analyst",
+      "date": "2026-09-07",
+      "clockIn": "08:25",
+      "clockOut": "-",
+      "location": "Head Office - Malang",
+      "status": "Terlambat",
+      "notes": "Toleransi 15 menit, kendala hujan lebat"
+    },
+    {
+      "id": "att-4",
+      "employeeName": "Rian Hidayat",
+      "employeeId": "EMP-004",
+      "division": "Strategic Growth & Product",
+      "role": "Branch Leader Kediri",
+      "date": "2026-09-07",
+      "clockIn": "07:45",
+      "clockOut": "-",
+      "location": "Branch Kediri",
+      "status": "Hadir Tepat Waktu",
+      "notes": "Briefing pagi operasional cabang"
+    },
+    {
+      "id": "att-5",
+      "employeeName": "Siti Nurhaliza",
+      "employeeId": "EMP-005",
+      "division": "Strategic Growth & Product",
+      "role": "Product Growth Officer",
+      "date": "2026-09-07",
+      "clockIn": "08:00",
+      "clockOut": "17:02",
+      "location": "Remote / WFH",
+      "status": "WFH",
+      "notes": "Penyusunan bundling promo kuartal Q3"
+    },
+    {
+      "id": "att-6",
+      "employeeName": "Ahmad Fauzi",
+      "employeeId": "EMP-006",
+      "division": "Technology & Digital",
+      "role": "Software Engineer",
+      "date": "2026-09-07",
+      "clockIn": "07:58",
+      "clockOut": "-",
+      "location": "Head Office - Malang",
+      "status": "Hadir Tepat Waktu",
+      "notes": "Maintenance server database ERP"
+    },
+    {
+      "id": "att-7",
+      "employeeName": "Rizky Pratama",
+      "employeeId": "EMP-007",
+      "division": "Strategic Growth & Product",
+      "role": "Branch Leader Malang",
+      "date": "2026-09-07",
+      "clockIn": "-",
+      "clockOut": "-",
+      "location": "-",
+      "status": "Cuti / Izin",
+      "notes": "Cuti Tahunan (disetujui)"
+    },
+    {
+      "id": "att-8",
+      "employeeName": "Hana Aeni",
+      "employeeId": "EMP-008",
+      "division": "Strategic Growth & Product",
+      "role": "Admin Sales Pasuruan",
+      "date": "2026-09-07",
+      "clockIn": "07:50",
+      "clockOut": "-",
+      "location": "Branch Pasuruan",
+      "status": "Hadir Tepat Waktu",
+      "notes": "Rekap input closing harian"
+    }
+  ],
+  "leaveRequests": [
+    {
+      "id": "lreq-1",
+      "employeeName": "Rizky Pratama",
+      "employeeId": "EMP-007",
+      "division": "Strategic Growth & Product",
+      "type": "Cuti Tahunan",
+      "startDate": "2026-09-07",
+      "endDate": "2026-09-08",
+      "totalDays": 2,
+      "reason": "Urusan keluarga di luar kota",
+      "status": "Disetujui",
+      "approver": "Head of Division SGP",
+      "appliedAt": "2026-09-03 14:20",
+      "attachment": "Form_Cuti_RP.pdf"
+    },
+    {
+      "id": "lreq-2",
+      "employeeName": "Dewi Sartika",
+      "employeeId": "EMP-003",
+      "division": "Business Quality & Governance",
+      "type": "Izin Sakit",
+      "startDate": "2026-09-11",
+      "endDate": "2026-09-12",
+      "totalDays": 2,
+      "reason": "Pemeriksaan medis terjadwal di RS Siloam",
+      "status": "Menunggu Persetujuan",
+      "approver": "Head of Department Compliance",
+      "appliedAt": "2026-09-06 09:15",
+      "attachment": "Surat_Rujukan_Dokter.pdf"
+    },
+    {
+      "id": "lreq-3",
+      "employeeName": "Ahmad Fauzi",
+      "employeeId": "EMP-006",
+      "division": "Technology & Digital",
+      "type": "Izin Keperluan Khusus",
+      "startDate": "2026-09-18",
+      "endDate": "2026-09-18",
+      "totalDays": 1,
+      "reason": "Menghadiri wisuda adik kandung",
+      "status": "Menunggu Persetujuan",
+      "approver": "Head of Division Tech",
+      "appliedAt": "2026-09-05 16:40",
+      "attachment": ""
+    },
+    {
+      "id": "lreq-4",
+      "employeeName": "Siti Nurhaliza",
+      "employeeId": "EMP-005",
+      "division": "Strategic Growth & Product",
+      "type": "Cuti Tahunan",
+      "startDate": "2026-08-14",
+      "endDate": "2026-08-15",
+      "totalDays": 2,
+      "reason": "Istirahat tahunan",
+      "status": "Disetujui",
+      "approver": "Head of Division SGP",
+      "appliedAt": "2026-08-08 11:10",
+      "attachment": ""
+    },
+    {
+      "id": "lreq-5",
+      "employeeName": "Dimas Rantung",
+      "employeeId": "EMP-002",
+      "division": "Strategic Growth & Product",
+      "type": "Izin Setengah Hari",
+      "startDate": "2026-08-28",
+      "endDate": "2026-08-28",
+      "totalDays": 0.5,
+      "reason": "Perpanjangan SIM di Polresta",
+      "status": "Ditolak",
+      "approver": "Head of Division SGP",
+      "appliedAt": "2026-08-27 17:00",
+      "attachment": ""
+    }
+  ],
+  "holidays": [
+    {
+      "id": "hol-1",
+      "date": "2026-01-01",
+      "name": "Tahun Baru Masehi 2026",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Hari libur pembuka tahun kalender"
+    },
+    {
+      "id": "hol-2",
+      "date": "2026-01-16",
+      "name": "Isra Mi'raj Nabi Muhammad SAW",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Peringatan hari besar keagamaan"
+    },
+    {
+      "id": "hol-3",
+      "date": "2026-02-17",
+      "name": "Tahun Baru Imlek 2577 Kongzili",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Tahun baru penanggalan Tionghoa"
+    },
+    {
+      "id": "hol-4",
+      "date": "2026-03-19",
+      "name": "Hari Suci Nyepi Tahun Baru Saka 1948",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Hari keheningan umat Hindu"
+    },
+    {
+      "id": "hol-5",
+      "date": "2026-03-20",
+      "name": "Hari Raya Idul Fitri 1447 Hijriah (Hari 1)",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Perayaan Idul Fitri 1 Syawal"
+    },
+    {
+      "id": "hol-6",
+      "date": "2026-03-21",
+      "name": "Hari Raya Idul Fitri 1447 Hijriah (Hari 2)",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Perayaan Idul Fitri 2 Syawal"
+    },
+    {
+      "id": "hol-7",
+      "date": "2026-03-23",
+      "name": "Cuti Bersama Hari Raya Idul Fitri",
+      "type": "Cuti Bersama",
+      "scope": "Nasional",
+      "desc": "Cuti bersama resmi pemerintah"
+    },
+    {
+      "id": "hol-8",
+      "date": "2026-04-03",
+      "name": "Wafat Isa Al Masih (Jumat Agung)",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Peringatan keagamaan Kristiani"
+    },
+    {
+      "id": "hol-9",
+      "date": "2026-05-01",
+      "name": "Hari Buruh Internasional (May Day)",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Peringatan hak-hak pekerja"
+    },
+    {
+      "id": "hol-10",
+      "date": "2026-05-14",
+      "name": "Kenaikan Isa Al Masih",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Hari libur keagamaan Kristiani"
+    },
+    {
+      "id": "hol-11",
+      "date": "2026-05-31",
+      "name": "Hari Raya Waisak 2570 BE",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Peringatan hari Tri Suci Waisak"
+    },
+    {
+      "id": "hol-12",
+      "date": "2026-06-01",
+      "name": "Hari Lahir Pancasila",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Peringatan dasar ideologi negara"
+    },
+    {
+      "id": "hol-13",
+      "date": "2026-06-16",
+      "name": "Hari Raya Idul Adha 1447 Hijriah",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Hari raya kurban"
+    },
+    {
+      "id": "hol-14",
+      "date": "2026-07-07",
+      "name": "Tahun Baru Islam 1448 Hijriah",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "1 Muharram kalender Islam"
+    },
+    {
+      "id": "hol-15",
+      "date": "2026-08-17",
+      "name": "Hari Kemerdekaan Republik Indonesia Ke-81",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "HUT Proklamasi Kemerdekaan RI"
+    },
+    {
+      "id": "hol-16",
+      "date": "2026-09-15",
+      "name": "Maulid Nabi Muhammad SAW",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Peringatan hari kelahiran Nabi Muhammad SAW"
+    },
+    {
+      "id": "hol-17",
+      "date": "2026-10-28",
+      "name": "Hari Sumpah Pemuda (Libur Operasional)",
+      "type": "Libur Khusus Perusahaan",
+      "scope": "Internal Dasaria",
+      "desc": "Fasilitasi gathering & team development"
+    },
+    {
+      "id": "hol-18",
+      "date": "2026-12-25",
+      "name": "Hari Raya Natal",
+      "type": "Libur Nasional",
+      "scope": "Nasional",
+      "desc": "Perayaan Natal"
+    },
+    {
+      "id": "hol-19",
+      "date": "2026-12-26",
+      "name": "Cuti Bersama Hari Raya Natal",
+      "type": "Cuti Bersama",
+      "scope": "Nasional",
+      "desc": "Cuti bersama resmi pemerintah"
+    }
+  ],
+  "employeeRoster": [
+    {
+      "id": "EMP-001",
+      "name": "Budi Santoso",
+      "division": "Business Quality & Governance",
+      "role": "Head of Dept Talent Acquisition",
+      "shiftType": "Standard 5-Day",
+      "schedules": {
+        "2026-09-05": "L",
+        "2026-09-06": "L",
+        "2026-09-12": "L",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-19": "L",
+        "2026-09-20": "L",
+        "2026-09-26": "L",
+        "2026-09-27": "L"
+      }
+    },
+    {
+      "id": "EMP-002",
+      "name": "Dimas Rantung",
+      "division": "Strategic Growth & Product",
+      "role": "Project Leader Open Branch",
+      "shiftType": "Operational Shift",
+      "schedules": {
+        "2026-09-02": "L",
+        "2026-09-03": "L",
+        "2026-09-09": "L",
+        "2026-09-10": "L",
+        "2026-09-15": "L",
+        "2026-09-16": "L",
+        "2026-09-17": "L",
+        "2026-09-23": "L",
+        "2026-09-24": "L",
+        "2026-09-30": "L"
+      }
+    },
+    {
+      "id": "EMP-003",
+      "name": "Dewi Sartika",
+      "division": "Business Quality & Governance",
+      "role": "Compliance Analyst",
+      "shiftType": "Standard 5-Day",
+      "schedules": {
+        "2026-09-05": "L",
+        "2026-09-06": "L",
+        "2026-09-11": "S",
+        "2026-09-12": "S",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-19": "L",
+        "2026-09-20": "L",
+        "2026-09-26": "L",
+        "2026-09-27": "L"
+      }
+    },
+    {
+      "id": "EMP-004",
+      "name": "Rian Hidayat",
+      "division": "Strategic Growth & Product",
+      "role": "Branch Leader Kediri",
+      "shiftType": "Operational Shift",
+      "schedules": {
+        "2026-09-01": "L",
+        "2026-09-07": "L",
+        "2026-09-08": "L",
+        "2026-09-14": "L",
+        "2026-09-15": "L",
+        "2026-09-21": "L",
+        "2026-09-22": "L",
+        "2026-09-28": "L",
+        "2026-09-29": "L"
+      }
+    },
+    {
+      "id": "EMP-005",
+      "name": "Siti Nurhaliza",
+      "division": "Strategic Growth & Product",
+      "role": "Product Growth Officer",
+      "shiftType": "Standard 5-Day",
+      "schedules": {
+        "2026-09-05": "L",
+        "2026-09-06": "L",
+        "2026-09-12": "L",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-19": "L",
+        "2026-09-20": "L",
+        "2026-09-26": "L",
+        "2026-09-27": "L"
+      }
+    },
+    {
+      "id": "EMP-006",
+      "name": "Ahmad Fauzi",
+      "division": "Technology & Digital",
+      "role": "Software Engineer",
+      "shiftType": "Standard 5-Day",
+      "schedules": {
+        "2026-09-05": "L",
+        "2026-09-06": "L",
+        "2026-09-12": "L",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-18": "I",
+        "2026-09-19": "L",
+        "2026-09-20": "L",
+        "2026-09-26": "L",
+        "2026-09-27": "L"
+      }
+    },
+    {
+      "id": "EMP-007",
+      "name": "Rizky Pratama",
+      "division": "Strategic Growth & Product",
+      "role": "Branch Leader Malang",
+      "shiftType": "Operational Shift",
+      "schedules": {
+        "2026-09-04": "L",
+        "2026-09-07": "C",
+        "2026-09-08": "C",
+        "2026-09-11": "L",
+        "2026-09-15": "L",
+        "2026-09-18": "L",
+        "2026-09-25": "L"
+      }
+    },
+    {
+      "id": "EMP-008",
+      "name": "Hana Aeni",
+      "division": "Strategic Growth & Product",
+      "role": "Admin Sales Pasuruan",
+      "shiftType": "Standard 6-Day",
+      "schedules": {
+        "2026-09-06": "L",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-20": "L",
+        "2026-09-27": "L"
+      }
+    },
+    {
+      "id": "EMP-009",
+      "name": "Bayu Prasetyo",
+      "division": "Strategic Growth & Product",
+      "role": "Teknisi FTTH Lapangan",
+      "shiftType": "Rotating Shift",
+      "schedules": {
+        "2026-09-03": "L",
+        "2026-09-04": "L",
+        "2026-09-10": "L",
+        "2026-09-11": "L",
+        "2026-09-15": "L",
+        "2026-09-17": "L",
+        "2026-09-18": "L",
+        "2026-09-22": "A",
+        "2026-09-24": "L",
+        "2026-09-25": "L"
+      }
+    },
+    {
+      "id": "EMP-010",
+      "name": "Hendra Gunawan",
+      "division": "Strategic Growth & Product",
+      "role": "Teknisi FTTH Lapangan",
+      "shiftType": "Rotating Shift",
+      "schedules": {
+        "2026-09-01": "L",
+        "2026-09-02": "L",
+        "2026-09-08": "L",
+        "2026-09-09": "L",
+        "2026-09-15": "L",
+        "2026-09-16": "L",
+        "2026-09-22": "L",
+        "2026-09-23": "L",
+        "2026-09-29": "L",
+        "2026-09-30": "L"
+      }
+    },
+    {
+      "id": "EMP-011",
+      "name": "Yuli Astuti",
+      "division": "Business Quality & Governance",
+      "role": "SOP Specialist",
+      "shiftType": "Standard 5-Day",
+      "schedules": {
+        "2026-09-05": "L",
+        "2026-09-06": "L",
+        "2026-09-12": "L",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-19": "L",
+        "2026-09-20": "L",
+        "2026-09-26": "L",
+        "2026-09-27": "L"
+      }
+    },
+    {
+      "id": "EMP-012",
+      "name": "Farhan Ramadhan",
+      "division": "Technology & Digital",
+      "role": "Network Engineer NOC",
+      "shiftType": "Operational Shift",
+      "schedules": {
+        "2026-09-04": "L",
+        "2026-09-05": "L",
+        "2026-09-11": "L",
+        "2026-09-12": "L",
+        "2026-09-15": "L",
+        "2026-09-18": "L",
+        "2026-09-19": "L",
+        "2026-09-25": "L",
+        "2026-09-26": "L"
+      }
+    },
+    {
+      "id": "EMP-013",
+      "name": "Riska Amalia",
+      "division": "People Corporate Compliance",
+      "role": "HR Generalist",
+      "shiftType": "Standard 5-Day",
+      "schedules": {
+        "2026-09-05": "L",
+        "2026-09-06": "L",
+        "2026-09-12": "L",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-19": "L",
+        "2026-09-20": "L",
+        "2026-09-26": "L",
+        "2026-09-27": "L"
+      }
+    },
+    {
+      "id": "EMP-014",
+      "name": "Doni Firmansyah",
+      "division": "People Corporate Compliance",
+      "role": "Legal Officer",
+      "shiftType": "Standard 5-Day",
+      "schedules": {
+        "2026-09-05": "L",
+        "2026-09-06": "L",
+        "2026-09-12": "L",
+        "2026-09-13": "L",
+        "2026-09-15": "L",
+        "2026-09-19": "L",
+        "2026-09-20": "L",
+        "2026-09-26": "L",
+        "2026-09-27": "L"
+      }
+    }
+  ]
+}

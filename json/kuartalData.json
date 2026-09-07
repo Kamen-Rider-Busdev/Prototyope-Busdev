@@ -1,0 +1,30 @@
+{
+  "branches": [
+    {"id":"BR01", "name":"Kota Lama", "usia":"2 th 3 bln"},
+    {"id":"BR02", "name":"Pasuruan Selatan", "usia":"1 th 8 bln"},
+    {"id":"BR03", "name":"Wendit", "usia":"3 th 1 bln"},
+    {"id":"BR04", "name":"Temas", "usia":"4 th 6 bln"},
+    {"id":"BR05", "name":"Kedungkandang", "usia":"2 th 11 bln"},
+    {"id":"BR06", "name":"Blimbing", "usia":"5 th 2 bln"},
+    {"id":"BR07", "name":"Sawojajar", "usia":"1 th 4 bln"},
+    {"id":"BR08", "name":"Burniaji", "usia":"2 th 0 bln"},
+    {"id":"BR09", "name":"Pasuruan Utara", "usia":"3 th 7 bln"},
+    {"id":"BR10", "name":"Dau", "usia":"2 th 5 bln"}
+  ],
+  "augustBase": {
+    "BR01":{"target":207, "onlyAdmin":10, "onlyFasum":1, "erp":11, "ae":66},
+    "BR02":{"target":207, "onlyAdmin":6,  "onlyFasum":7, "erp":13, "ae":120},
+    "BR03":{"target":207, "onlyAdmin":3,  "onlyFasum":6, "erp":9,  "ae":90},
+    "BR04":{"target":228, "onlyAdmin":20, "onlyFasum":2, "erp":22, "ae":177},
+    "BR05":{"target":207, "onlyAdmin":9,  "onlyFasum":6, "erp":15, "ae":112},
+    "BR06":{"target":247, "onlyAdmin":7,  "onlyFasum":1, "erp":8,  "ae":163},
+    "BR07":{"target":207, "onlyAdmin":6,  "onlyFasum":2, "erp":8,  "ae":97},
+    "BR08":{"target":247, "onlyAdmin":3,  "onlyFasum":1, "erp":4,  "ae":71},
+    "BR09":{"target":228, "onlyAdmin":14, "onlyFasum":2, "erp":16, "ae":213},
+    "BR10":{"target":247, "onlyAdmin":15, "onlyFasum":7, "erp":22, "ae":164}
+  },
+  "auditTrail": [
+    {"branch":"Pasuruan Utara", "bulan":9, "tahun":2026, "targetLama":null, "targetBaru":228, "waktu":"2026-08-25 10:12", "user":"Hana Aeni"},
+    {"branch":"Dau", "bulan":8, "tahun":2026, "targetLama":230, "targetBaru":247, "waktu":"2026-08-02 09:03", "user":"Admin HO"}
+  ]
+}

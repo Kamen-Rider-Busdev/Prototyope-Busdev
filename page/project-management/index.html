@@ -1,0 +1,59 @@
+<div class="page-head" style="margin-bottom: 20px;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 4px;">Project Management</h1>
+    <p style="margin: 0; font-size: 13.5px; color: var(--ink-soft);">
+      Sistem manajemen proyek &amp; task terpadu dengan kategori Divisi maupun Departemen (BQG &amp; SGP).
+    </p>
+  </div>
+  <button class="btn btn-primary" id="btn-add-project">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    Tambah Proyek / Task
+  </button>
+</div>
+
+<!-- Toolbar Filter & View Mode -->
+<div class="pm-toolbar">
+  <div class="pm-filters">
+    <div class="search-box pm-search">
+      <input type="text" id="pm-search-input" placeholder="Cari task, key, dept, atau tag..." value="{{searchQuery}}">
+    </div>
+    <select id="pm-filter-category-type" class="modal-inp" style="width: auto; padding: 7px 10px; font-size: 13px;">
+      <option value="ALL">Semua Kategori</option>
+      <option value="division" {{filterTypeDivSelected}}>Task Divisi</option>
+      <option value="department" {{filterTypeDeptSelected}}>Task Perdepartemen</option>
+    </select>
+    <select id="pm-filter-division" class="modal-inp" style="width: auto; padding: 7px 10px; font-size: 13px;">
+      <option value="ALL">Semua Divisi</option>
+      <option value="Business Quality & Governance" {{filterBqgSelected}}>Business Quality &amp; Governance (BQG)</option>
+      <option value="Strategic Growth & Product" {{filterSgpSelected}}>Strategic Growth &amp; Product (SGP)</option>
+      <option value="Cross-Divisi" {{filterCrossSelected}}>Cross-Divisi</option>
+    </select>
+    <select id="pm-filter-department" class="modal-inp" style="width: auto; padding: 7px 10px; font-size: 13px;">
+      <option value="ALL">Semua Departemen</option>
+      {{departmentOptions}}
+    </select>
+    <select id="pm-filter-priority" class="modal-inp" style="width: auto; padding: 7px 10px; font-size: 13px;">
+      <option value="ALL">Semua Prioritas</option>
+      <option value="urgent" {{prioUrgentSelected}}>Urgent</option>
+      <option value="high" {{prioHighSelected}}>High</option>
+      <option value="medium" {{prioMediumSelected}}>Medium</option>
+      <option value="low" {{prioLowSelected}}>Low</option>
+    </select>
+  </div>
+
+  <div class="pm-view-toggle">
+    <button class="pm-view-btn {{boardActive}}" id="pm-view-board">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"></rect><rect x="14" y="3" width="7" height="11" rx="1"></rect></svg>
+      Board
+    </button>
+    <button class="pm-view-btn {{tableActive}}" id="pm-view-table">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      Tabel List
+    </button>
+  </div>
+</div>
+
+<!-- Main Content Area: Board or Table -->
+<div id="pm-content-view">
+  {{pmContentView}}
+</div>

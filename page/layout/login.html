@@ -1,0 +1,33 @@
+<div class="login-screen" data-theme="{{theme}}">
+  <div class="login-aside">
+    <div class="brand"><b>BIG Center</b> - Business Innovation and Governance Center</div>
+    <div>
+      <h1>Satu peta yang jelas untuk struktur organisasi dan uraian jabatan.</h1>
+    </div>
+    <div class="tiers">
+      <span>Directorate → Division → Department → Job Role</span>
+      <span>14 bagian uraian jabatan terstruktur, bukan dokumen datar</span>
+      <span>Dirancang untuk 7 direktorat dan puluhan jabatan</span>
+    </div>
+  </div>
+  <div class="login-main">
+    <div class="login-card">
+      <h2>Masuk ke akun Anda</h2>
+      <p class="sub">Gunakan kredensial internal Business Development.</p>
+      <div class="field">
+        <label>Email</label>
+        <input id="login-email" type="text" placeholder="nama@perusahaan.co.id" value="{{email}}">
+      </div>
+      <div class="field">
+        <label>Kata sandi</label>
+        <div class="pw-wrap">
+          <input id="login-password" type="{{passwordType}}" placeholder="••••••••" value="{{password}}">
+          <button id="login-toggle-pw" type="button">{{togglePwText}}</button>
+        </div>
+      </div>
+      {{errorHtml}}
+      <button class="btn btn-primary" id="login-submit">Masuk</button>
+      <div class="login-hint">Prototipe — gunakan email &amp; kata sandi apa pun untuk masuk.</div>
+    </div>
+  </div>
+</div>

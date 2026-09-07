@@ -1,0 +1,1526 @@
+[
+  {
+    "id": "br-gempol",
+    "name": "Gempol Utara (G1)",
+    "fullName": "Planning Open Branch Gempol Utara (G1)",
+    "location": "Gempol, Pasuruan, Jawa Timur",
+    "status": "Aktif",
+    "lifecycleStatus": "Pra-Release",
+    "projectLeader": "Dimas Rantung",
+    "targetOpenDate": "2027-01-01",
+    "progress": 42,
+    "lastUpdated": "04 Sep 2026, 17:00",
+    "readinessChecklist": {
+      "operational": [
+        {
+          "id": "ro-1",
+          "title": "Branch Leader aktif dan bertugas",
+          "done": true
+        },
+        {
+          "id": "ro-2",
+          "title": "Teknisi selesai training dan tersertifikasi",
+          "done": true
+        },
+        {
+          "id": "ro-3",
+          "title": "Account Executive ready untuk canvassing",
+          "done": false
+        },
+        {
+          "id": "ro-4",
+          "title": "Akun ERP BL, AE, dan Teknisi aktif",
+          "done": true
+        },
+        {
+          "id": "ro-5",
+          "title": "Kantor Branch siap pakai (listrik, air, AC)",
+          "done": false
+        }
+      ],
+      "technical": [
+        {
+          "id": "rt-1",
+          "title": "POP ODC aktif & lolos uji kelayakan",
+          "done": false
+        },
+        {
+          "id": "rt-2",
+          "title": "Jalur backbone terhubung & redaman standar",
+          "done": false
+        },
+        {
+          "id": "rt-3",
+          "title": "Perangkat aktif (OLT, Switch, Mikrotik) normal",
+          "done": false
+        },
+        {
+          "id": "rt-4",
+          "title": "Internet kantor branch aktif",
+          "done": false
+        },
+        {
+          "id": "rt-5",
+          "title": "Batch awal siap dilayani",
+          "done": false
+        }
+      ],
+      "commercial": [
+        {
+          "id": "rc-1",
+          "title": "Banner promosi & spanduk terpasang",
+          "done": false
+        },
+        {
+          "id": "rc-2",
+          "title": "Marketing kit & brosur tersedia",
+          "done": true
+        },
+        {
+          "id": "rc-3",
+          "title": "Sales system & paket kuartal siap jual",
+          "done": true
+        },
+        {
+          "id": "rc-4",
+          "title": "Perizinan area coverage tuntas",
+          "done": false
+        }
+      ]
+    },
+    "monitors": [
+      {
+        "id": "mon-gp-odc",
+        "name": "Opsi Lokasi POP ODC",
+        "status": "On Progress",
+        "progress": 80,
+        "pic": "Dimas Rantung",
+        "targetDate": "15/09/2026",
+        "blocker": "Finalisasi pilihan lokasi dan tindak lanjut stakeholder setempat",
+        "nextAction": "Tetapkan lokasi final POP/ODC dan proses izin",
+        "evidence": "Link Maps & Foto Survey",
+        "lastUpdated": "27 Jul 2026, 14:00",
+        "popOdcOptions": [
+          {
+            "id": "opt-gp-1",
+            "no": 1,
+            "surveyor": "Dimas Rantung",
+            "date": "27/07/2026",
+            "branchOption": "Gempol 1",
+            "status": "Survey Selesai",
+            "recommendation": "Direkomendasikan",
+            "location": {
+              "address": "Jl. Wicaksono, RT.04/RW.03, Legundi, Kec. Beji, Pasuruan",
+              "gmaps": "https://maps.app.goo.gl/gempol1",
+              "pic": "Pak Herman (Ketua RT)",
+              "landStatus": "Tanah Kas Desa / Warga"
+            },
+            "environment": {
+              "pengawasan": "Ada (Warga & Pengurus RT)",
+              "akses": "Bisa dilewati mobil",
+              "terbuka": "Teduh",
+              "matahari": "Terlindung",
+              "banjir": "Aman bebas banjir"
+            },
+            "documentation": {
+              "fileLink": "Dokumentasi Opsi Legundi.pdf",
+              "notes": "Akses teknisi mudah dan titik ODC teduh; komunikasi stakeholder perlu ditindaklanjuti."
+            }
+          },
+          {
+            "id": "opt-gp-2",
+            "no": 2,
+            "surveyor": "Dimas Rantung",
+            "date": "27/07/2026",
+            "branchOption": "Gempol 1",
+            "status": "Survey Selesai",
+            "recommendation": "Direkomendasikan",
+            "location": {
+              "address": "Perumahan Melikan Permai, Gempol, Pasuruan",
+              "gmaps": "https://maps.app.goo.gl/melikan",
+              "pic": "Pak Sutrisno (Ketua RW)",
+              "landStatus": "Fasum Perumahan"
+            },
+            "environment": {
+              "pengawasan": "Ada (Security Perumahan)",
+              "akses": "Jalan utama komplek",
+              "terbuka": "Sedang",
+              "matahari": "Terlindung pohon",
+              "banjir": "Aman"
+            },
+            "documentation": {
+              "fileLink": "Foto ODC Melikan.jpg",
+              "notes": "Berada di fasum perumahan dan akses teknisi mudah."
+            }
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-permit",
+        "name": "Permit",
+        "status": "On Progress",
+        "progress": 60,
+        "pic": "Dimas Rantung / PIC Permit",
+        "targetDate": "04/09/2026",
+        "blocker": "Permit kedua (Gunung Gangsir) masih menunggu keputusan eksternal",
+        "nextAction": "Follow-up keputusan eksternal dan lengkapi BAK/dokumen",
+        "evidence": "Proposal + BAK Perum Melikan",
+        "lastUpdated": "04 Sep 2026, 11:30",
+        "permitData": [
+          {
+            "id": "pmt-gp-1",
+            "no": 1,
+            "kecamatan": "Gempol",
+            "kelurahan": "Kejapanan",
+            "kodeArea": "GPL-001",
+            "rw": "02",
+            "rt": "05",
+            "jenisPermit": "Izin ODC",
+            "statusPlanner": "Proposal Naik ke Tim Permit",
+            "picPlanner": "Dimas Rantung",
+            "statusPermit": "Disetujui",
+            "picPermit": "Dimas Rantung",
+            "tglProposal": "15/08/2026",
+            "tglBak": "31/08/2026",
+            "targetSelesai": "04/09/2026",
+            "tglSelesai": "04/09/2026",
+            "jenisKompensasi": "Uang Tunai",
+            "nilaiKompensasi": "Rp 2.500.000 / 5 tahun",
+            "overallStatus": "Completed",
+            "linkProposal": "https://docs.google.com/proposal-kejapanan",
+            "linkBak": "https://docs.google.com/bak-kejapanan",
+            "keterangan": "Warga menyetujui pemasangan ODC di fasum Perum Melikan Permai; kompensasi disetujui."
+          },
+          {
+            "id": "pmt-gp-2",
+            "no": 2,
+            "kecamatan": "Beji",
+            "kelurahan": "Gunung Gangsir",
+            "kodeArea": "GPL-002",
+            "rw": "01",
+            "rt": "03",
+            "jenisPermit": "Izin ODC",
+            "statusPlanner": "Proposal Naik ke Tim Permit",
+            "picPlanner": "Dimas Rantung",
+            "statusPermit": "Menunggu Keputusan Eksternal",
+            "picPermit": "Dimas Rantung",
+            "tglProposal": "20/08/2026",
+            "tglBak": "-",
+            "targetSelesai": "18/09/2026",
+            "tglSelesai": "-",
+            "jenisKompensasi": "Uang",
+            "nilaiKompensasi": "-",
+            "overallStatus": "On Progress",
+            "linkProposal": "https://docs.google.com/proposal-gununggangsir",
+            "linkBak": "",
+            "keterangan": "Menunggu rapat warga dan keputusan eksternal permit."
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-bof",
+        "name": "Opsi Lokasi Kantor Branch",
+        "status": "Planning",
+        "progress": 30,
+        "pic": "Branch Leader dan SPVR",
+        "targetDate": "25/09/2026",
+        "blocker": "Opsi, harga sewa, dan dokumen planning belum final",
+        "nextAction": "Survey lanjutan dan tetapkan opsi kantor branch",
+        "evidence": "Foto + GMaps survey ruko Gempol",
+        "lastUpdated": "02 Sep 2026, 16:00",
+        "branchOfficeOptions": [
+          {
+            "id": "bof-gp-1",
+            "no": 1,
+            "surveyor": "Dimas Rantung",
+            "date": "28/08/2026",
+            "status": "On Survey",
+            "recommendation": "Pertimbangkan",
+            "identitas": {
+              "fotoTampakDepan": "",
+              "alamat": "Jl. Raya Kejapanan No. 88, Gempol, Pasuruan",
+              "gmaps": "https://maps.app.goo.gl/bof-kejapanan",
+              "namaPemilik": "H. Syamsul Arifin",
+              "kontakPemilik": "0813-8877-6655",
+              "jenisBangunan": "Ruko 2 Lantai",
+              "jumlahLantai": "2",
+              "jumlahRuangan": "6"
+            },
+            "operasional": {
+              "jarakAreaPenjualan": "4 km",
+              "aksesKendaraan": "Jalan propinsi, truk/mobil lancar",
+              "areaParkir": "Ada (8 mobil)",
+              "kondisiLingkungan": "Area perdagangan ramai",
+              "keamananLingkungan": "Baik"
+            },
+            "standarBranch": {
+              "areaBrainstorming": "Ada",
+              "areaMaterialFTTH": "Ada",
+              "areaTiang": "Ada",
+              "areaIstirahat": "Ada",
+              "pantry": "Ada",
+              "kamarMandi": "Ada (2 unit)"
+            },
+            "infoBangunan": {
+              "luasTanah": "180",
+              "luasBangunan": "140",
+              "jumlahLantai": "2",
+              "jumlahRuangan": "6",
+              "hargaSewa": "Rp 50.000.000 / tahun"
+            },
+            "kondisiBangunan": {
+              "kondisiBangunan": "Baik",
+              "kondisiKelistrikan": "Baik",
+              "dayaListrik": "3500",
+              "kondisiAir": "Baik (PDAM)",
+              "sumberAir": "PDAM",
+              "estimasiRenovasi": "Rp 15.000.000"
+            },
+            "dokumentasi": {
+              "linkDokumentasi": "https://drive.google.com/bof-kejapanan"
+            }
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-route",
+        "name": "Route Area Backbone",
+        "status": "On Progress",
+        "progress": 50,
+        "pic": "Branch Leader (BL)",
+        "targetDate": "30/09/2026",
+        "blocker": "Data jalur 3-4 belum final, menunggu perizinan tiang",
+        "nextAction": "Lengkapi route Jalur 1-4 dan upload dokumentasi",
+        "evidence": "Peta trase FO Gempol",
+        "lastUpdated": "03 Sep 2026, 15:30",
+        "routeAreaData": [
+          {
+            "id": "rta-gp-1",
+            "no": 1,
+            "batch": "Batch 1",
+            "warnaArea": "Merah",
+            "namaArea": "Feeder Kejapanan - Melikan",
+            "otb": "OTB-GPL-01",
+            "jalur1": {
+              "kabel": "SC-12",
+              "tube": "1",
+              "core": "1-12",
+              "panjang": "480"
+            },
+            "cj1": "CJ-01",
+            "jalur2": {
+              "kabel": "SC-12",
+              "tube": "2",
+              "core": "1-12",
+              "panjang": "320"
+            },
+            "cj2": "CJ-02",
+            "jalur3": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj3": "",
+            "jalur4": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj4": "",
+            "totalPanjang": "800",
+            "statusRoute": "On Progress",
+            "linkDokumentasi": "https://drive.google.com/trase-gempol",
+            "catatan": "Penarikan kabel 50% selesai"
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-popbgn",
+        "name": "Pembangunan POP ODC",
+        "status": "On Progress",
+        "progress": 35,
+        "pic": "Tim Infra & Engineering",
+        "targetDate": "15/10/2026",
+        "blocker": "Kesiapan lokasi pondasi ODC dan sambungan daya PLN",
+        "nextAction": "Mulai pengecoran dudukan ODC dan koordinasi PLN Rayon Gempol",
+        "evidence": "RAB & Design Gambar ODC",
+        "lastUpdated": "02 Sep 2026, 17:00",
+        "pembangunanPopData": [
+          {
+            "id": "ppop-gp-1",
+            "no": 1,
+            "surveyor": "Dimas Rantung",
+            "date": "29/08/2026",
+            "status": "On Progress",
+            "recommendation": "Lanjutkan",
+            "infoLokasi": {
+              "fotoLokasi": "",
+              "alamatLokasi": "Perum Melikan Permai, Blok B2, Gempol",
+              "linkGmaps": "https://maps.app.goo.gl/melikan"
+            },
+            "pembangunanODC": {
+              "statusRAB": "Approved",
+              "statusPengadaan": "On Progress",
+              "statusPembangunan": "Pondasi Dimulai",
+              "statusInstalasi": "Belum Mulai",
+              "statusUjiKelayakan": "Belum Mulai"
+            },
+            "kelistrikanODC": {
+              "statusPengajuanPLN": "Submitted",
+              "statusInstalasiListrik": "Belum Mulai",
+              "statusListrikODC": "Belum Aktif"
+            },
+            "aktivasiPerangkat": {
+              "statusPersiapan": "Belum Mulai",
+              "statusKonfigurasi": "Belum Mulai",
+              "statusAktivasiODC": "Belum Mulai"
+            },
+            "dokumentasi": {
+              "targetODCReady": "15/10/2026",
+              "aktualODCReady": "-",
+              "catatanKendala": "Menunggu material kabinet ODC dari gudang logistik",
+              "linkDokumentasi": "https://drive.google.com/odc-gempol"
+            }
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-plan",
+        "name": "Plan Area",
+        "status": "Planning",
+        "progress": 40,
+        "pic": "BL setelah training",
+        "targetDate": "10/10/2026",
+        "blocker": "Perencanaan polygon ODP dan titik tiang belum diverifikasi lapangan",
+        "nextAction": "Isi plan RK, ODP, tiang, dan sumber CJ secara presisi",
+        "evidence": "Google Earth KMZ Planning",
+        "lastUpdated": "01 Sep 2026, 10:00",
+        "planAreaData": [
+          {
+            "id": "pln-gp-1",
+            "no": 1,
+            "namaArea": "Area Kejapanan Timur",
+            "kodeArea": "GPL-KJP-01",
+            "kecamatan": "Gempol",
+            "kelurahan": "Kejapanan",
+            "rw": "02, 03",
+            "totalLuasArea": "110 M",
+            "stdLuasArea": "100 M - 150 M",
+            "statusArea": "Approved",
+            "planRk": "RK-GPL-01",
+            "planOdp": "ODP-12 unit",
+            "jmlTiang": "14",
+            "sumberCj": "CJ-01 Kejapanan",
+            "keterangan": "Kawasan pemukiman padat dan ruko"
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-tiang",
+        "name": "Pemasangan Tiang",
+        "status": "Planning",
+        "progress": 20,
+        "pic": "Vendor Partner & QC Infra",
+        "targetDate": "20/10/2026",
+        "blocker": "Pengiriman tiang beton dari pabrikasi",
+        "nextAction": "Marking titik tanam dan jadwalkan drop tiang",
+        "evidence": "BoQ Tiang & Surat Jalan",
+        "lastUpdated": "03 Sep 2026, 11:00",
+        "pemasanganTiangData": [
+          {
+            "id": "ptg-gp-1",
+            "no": 1,
+            "idTiang": "TG-GPL-001",
+            "lokasi": "Jl. Melikan Raya No.1",
+            "linkGmaps": "https://maps.app.goo.gl/tg-gpl1",
+            "jenisTiang": "Tiang Beton 9m",
+            "statusPekerjaan": "Belum Mulai",
+            "statusQC": "Belum QC",
+            "linkDokumentasi": "",
+            "catatan": "Titik marking sudah dibuat",
+            "lampiranFormQC": "",
+            "lampiranFormTanam": ""
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-fasum",
+        "name": "Komitmen Fasum / Free Wifi",
+        "status": "Planning",
+        "progress": 10,
+        "pic": "IR Specialist & BL",
+        "targetDate": "30/10/2026",
+        "blocker": "Titik koordinat dan surat permohonan fasum belum diserahkan warga",
+        "nextAction": "Input permohonan dan koordinasi peresmian fasum",
+        "evidence": "Surat Komitmen Warga",
+        "lastUpdated": "31 Agu 2026, 14:00",
+        "fasumData": [
+          {
+            "id": "fsm-gp-1",
+            "no": 1,
+            "namaArea": "Balai RW 02 Kejapanan",
+            "kelurahan": "Kejapanan",
+            "rw": "02",
+            "rt": "05",
+            "lokasiFasum": "Balai Warga Melikan Permai",
+            "pemohon": "Pengurus RW 02",
+            "status": "Approved",
+            "titikKoordinat": "-7.6112, 112.7231",
+            "linkDokumentasi": ""
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-banner",
+        "name": "Pemasangan Banner",
+        "status": "Planning",
+        "progress": 15,
+        "pic": "Marketing & Promosi",
+        "targetDate": "15/11/2026",
+        "blocker": "Survey titik dan desain materi promosi belum disetujui",
+        "nextAction": "Survey titik strategis, pengajuan perizinan, dan cetak banner",
+        "evidence": "Mockup Desain Banner",
+        "lastUpdated": "01 Sep 2026, 09:00",
+        "bannerData": [
+          {
+            "id": "bnr-gp-1",
+            "no": 1,
+            "kecamatan": "Gempol",
+            "kelurahan": "Kejapanan",
+            "kodeArea": "GPL-BNR-01",
+            "titikKoordinat": "-7.6105, 112.7218",
+            "linkMaps": "https://maps.app.goo.gl/banner-kejapanan",
+            "status": "Survey Selesai",
+            "pic": "Marketing Team",
+            "targetPemasangan": "15/11/2026",
+            "tanggalPemasangan": "-",
+            "foto": "",
+            "keterangan": "Pertigaan gerbang masuk Perum Melikan Permai"
+          }
+        ]
+      },
+      {
+        "id": "mon-gp-mat",
+        "name": "Pengajuan Material",
+        "status": "On Progress",
+        "progress": 30,
+        "pic": "GSSC & Logistik",
+        "targetDate": "25/10/2026",
+        "blocker": "Gap ketersediaan perangkat OPM dan tangga teleskopik di gudang",
+        "nextAction": "PO pengadaan material kantor dan atribut teknisi",
+        "evidence": "PR & PO Procurement",
+        "lastUpdated": "04 Sep 2026, 10:00",
+        "materialData": [
+          {
+            "id": "mat-gp-1",
+            "no": 1,
+            "jenisMaterial": "Atribut BL & AE",
+            "namaMaterial": "Seragam PDH & ID Card",
+            "kebutuhan": 15,
+            "ready": 15,
+            "gap": 0,
+            "status": "Completed",
+            "linkBAST": "https://docs.google.com/bast-pdh",
+            "catatan": "Ready dibagikan saat kickoff"
+          },
+          {
+            "id": "mat-gp-2",
+            "no": 2,
+            "jenisMaterial": "Tools",
+            "namaMaterial": "Fusion Splicer & Cleaver",
+            "kebutuhan": 2,
+            "ready": 1,
+            "gap": 1,
+            "status": "On Progress",
+            "linkBAST": "",
+            "catatan": "Menunggu 1 unit tambahan"
+          },
+          {
+            "id": "mat-gp-3",
+            "no": 3,
+            "jenisMaterial": "Tools",
+            "namaMaterial": "Tangga Teleskopik 3.8M",
+            "kebutuhan": 4,
+            "ready": 1,
+            "gap": 3,
+            "status": "On Progress",
+            "linkBAST": "",
+            "catatan": "Proses pengiriman vendor"
+          },
+          {
+            "id": "mat-gp-4",
+            "no": 4,
+            "jenisMaterial": "Kantor",
+            "namaMaterial": "Meja, Kursi, & Rack Server",
+            "kebutuhan": 8,
+            "ready": 0,
+            "gap": 8,
+            "status": "Planning",
+            "linkBAST": "",
+            "catatan": "Menunggu penetapan sewa ruko"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "br-1",
+    "name": "Branch Malang",
+    "location": "Malang, Jawa Timur",
+    "status": "Aktif",
+    "progress": 72,
+    "lastUpdated": "04 Sep 2026, 09:30",
+    "monitors": [
+      {
+        "id": "m1-0",
+        "name": "Opsi Lokasi POP ODC",
+        "status": "Aktif",
+        "progress": 80,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "popOdcOptions": [
+          {
+            "id": "opt-1",
+            "no": 1,
+            "surveyor": "Dimas Rantung",
+            "date": "28/07/2026",
+            "branchOption": "Pandaan",
+            "status": "Survey Selesai",
+            "recommendation": "Direkomendasikan",
+            "location": {
+              "address": "Perumahan Graha Pandaan (JL Graha Pandaan)",
+              "gmaps": "https://maps.app.goo.gl/dummy1",
+              "pic": "Pak Aziz",
+              "landStatus": "Perumahan"
+            },
+            "environment": {
+              "pengawasan": "Ada (Security 24 Jam)",
+              "akses": "Bisa dilewati mobil",
+              "terbuka": "Ya",
+              "matahari": "Ada atap/kanopi",
+              "banjir": "Aman"
+            },
+            "documentation": {
+              "fileLink": "Opsi ODC Pandaan.jpeg",
+              "notes": "Masih dikomunikasikan dengan jajaran developer"
+            }
+          },
+          {
+            "id": "opt-2",
+            "no": 2,
+            "surveyor": "Dimas Rantung",
+            "date": "28/07/2026",
+            "branchOption": "Pandaan",
+            "status": "Survey Selesai",
+            "recommendation": "Direkomendasikan",
+            "location": {
+              "address": "Kantor Desa Karangjati",
+              "gmaps": "https://maps.app.goo.gl/dummy2",
+              "pic": "Pak Ismail",
+              "landStatus": "Pemerintah"
+            },
+            "environment": {
+              "pengawasan": "Ada (Staff Desa)",
+              "akses": "Jalan raya utama",
+              "terbuka": "Cukup terlindung",
+              "matahari": "Di dalam area parkir",
+              "banjir": "Aman"
+            },
+            "documentation": {
+              "fileLink": "Foto Kantor Desa.pdf",
+              "notes": "Perlu surat pengantar resmi dari pusat"
+            }
+          }
+        ]
+      },
+      {
+        "id": "m1-1",
+        "name": "Permit",
+        "status": "Aktif",
+        "progress": 65,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "permitData": [
+          {
+            "id": "pmt-1",
+            "no": 1,
+            "kecamatan": "Pandaan",
+            "kelurahan": "Karangjati",
+            "kodeArea": "KDA-001",
+            "rw": "01",
+            "rt": "02",
+            "jenisPermit": "Izin ODC",
+            "statusPlanner": "Proposal No",
+            "picPlanner": "Budi Santoso",
+            "statusPermit": "Submitted",
+            "picPermit": "Andi M",
+            "tglProposal": "01/08/2026",
+            "tglBak": "05/08/2026",
+            "targetSelesai": "15/08/2026",
+            "tglSelesai": "-",
+            "jenisKompensasi": "Uang Tunai",
+            "nilaiKompensasi": "Rp 500.000",
+            "overallStatus": "On Progress",
+            "linkProposal": "https://docs.google.com/document/dummy1",
+            "linkBak": "https://docs.google.com/document/dummy2",
+            "keterangan": "Menunggu proses tanda tangan RT/RW"
+          }
+        ]
+      },
+      {
+        "id": "m1-2",
+        "name": "Plan Area",
+        "status": "Aktif",
+        "progress": 72,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "planAreaData": [
+          {
+            "id": "pln-1",
+            "no": 1,
+            "namaArea": "Area Pandaan Utara",
+            "kodeArea": "PDU-001",
+            "kecamatan": "Pandaan",
+            "kelurahan": "Pandaan",
+            "rw": "01, 02",
+            "totalLuasArea": "120 M",
+            "stdLuasArea": "100 M - 150 M",
+            "statusArea": "Approved",
+            "planRk": "RK-1001",
+            "planOdp": "ODP-101",
+            "jmlTiang": "4",
+            "sumberCj": "Internal",
+            "keterangan": "Area padat penduduk"
+          },
+          {
+            "id": "pln-2",
+            "no": 2,
+            "namaArea": "Area Karangjati Selatan",
+            "kodeArea": "KJS-002",
+            "kecamatan": "Pandaan",
+            "kelurahan": "Karangjati",
+            "rw": "03, 04",
+            "totalLuasArea": "80 M",
+            "stdLuasArea": "< 100 M",
+            "statusArea": "Pending",
+            "planRk": "RK-1002",
+            "planOdp": "ODP-102",
+            "jmlTiang": "2",
+            "sumberCj": "Mitra",
+            "keterangan": "Perlu validasi ulang luasan"
+          }
+        ]
+      },
+      {
+        "id": "m1-3",
+        "name": "Opsi Lokasi Kantor Branch",
+        "status": "Aktif",
+        "progress": 50,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "branchOfficeOptions": [
+          {
+            "id": "bof-1",
+            "no": 1,
+            "surveyor": "Rizky Pratama",
+            "date": "02/09/2026",
+            "status": "Survey Selesai",
+            "recommendation": "Direkomendasikan",
+            "identitas": {
+              "fotoTampakDepan": "",
+              "alamat": "Jl. Raya Sulfat No. 48, Blimbing, Malang",
+              "gmaps": "https://maps.app.goo.gl/dummy-bof1",
+              "namaPemilik": "Pak Hendra Wijaya",
+              "kontakPemilik": "0812-3456-7890",
+              "jenisBangunan": "Ruko",
+              "jumlahLantai": "2",
+              "jumlahRuangan": "8"
+            },
+            "operasional": {
+              "jarakAreaPenjualan": "5 km",
+              "aksesKendaraan": "Bisa dilewati truk kecil",
+              "areaParkir": "Ada (10 mobil)",
+              "kondisiLingkungan": "Baik, area komersial",
+              "keamananLingkungan": "Tinggi (ada pos satpam)"
+            },
+            "standarBranch": {
+              "areaBrainstorming": "Ada",
+              "areaMaterialFTTH": "Ada",
+              "areaTiang": "Ada",
+              "areaIstirahat": "Ada",
+              "pantry": "Ada",
+              "kamarMandi": "Ada (2 unit)"
+            },
+            "infoBangunan": {
+              "luasTanah": "200",
+              "luasBangunan": "120",
+              "jumlahLantai": "2",
+              "jumlahRuangan": "8",
+              "hargaSewa": "Rp 45.000.000 / tahun"
+            },
+            "kondisiBangunan": {
+              "kondisiBangunan": "Baik",
+              "kondisiKelistrikan": "Baik",
+              "dayaListrik": "3500",
+              "kondisiAir": "Baik",
+              "sumberAir": "PDAM",
+              "estimasiRenovasi": ""
+            },
+            "dokumentasi": {
+              "linkDokumentasi": "https://drive.google.com/dummy-bof1"
+            }
+          },
+          {
+            "id": "bof-2",
+            "no": 2,
+            "surveyor": "Rizky Pratama",
+            "date": "03/09/2026",
+            "status": "Survey Selesai",
+            "recommendation": "Pertimbangkan",
+            "identitas": {
+              "fotoTampakDepan": "",
+              "alamat": "Jl. Soekarno Hatta No. 12, Lowokwaru, Malang",
+              "gmaps": "https://maps.app.goo.gl/dummy-bof2",
+              "namaPemilik": "Bu Sari Dewi",
+              "kontakPemilik": "0856-9876-5432",
+              "jenisBangunan": "Rumah",
+              "jumlahLantai": "1",
+              "jumlahRuangan": "5"
+            },
+            "operasional": {
+              "jarakAreaPenjualan": "8 km",
+              "aksesKendaraan": "Gang dalam, bisa dilewati 1 mobil",
+              "areaParkir": "Ada (6 mobil)",
+              "kondisiLingkungan": "Cukup, area perumahan",
+              "keamananLingkungan": "Cukup"
+            },
+            "standarBranch": {
+              "areaBrainstorming": "Tidak Ada",
+              "areaMaterialFTTH": "Ada",
+              "areaTiang": "Tidak Ada",
+              "areaIstirahat": "Ada",
+              "pantry": "Ada",
+              "kamarMandi": "Ada (1 unit)"
+            },
+            "infoBangunan": {
+              "luasTanah": "150",
+              "luasBangunan": "90",
+              "jumlahLantai": "1",
+              "jumlahRuangan": "5",
+              "hargaSewa": "Rp 30.000.000 / tahun"
+            },
+            "kondisiBangunan": {
+              "kondisiBangunan": "Cukup Baik",
+              "kondisiKelistrikan": "Cukup",
+              "dayaListrik": "2200",
+              "kondisiAir": "Cukup",
+              "sumberAir": "Sumur",
+              "estimasiRenovasi": "Rp 35.000.000"
+            },
+            "dokumentasi": {
+              "linkDokumentasi": "https://drive.google.com/dummy-bof2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "m1-4",
+        "name": "Route Area",
+        "status": "Aktif",
+        "progress": 60,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "routeAreaData": [
+          {
+            "id": "rta-1",
+            "no": 1,
+            "batch": "Batch 1",
+            "warnaArea": "Merah",
+            "namaArea": "Area Karangjati Utara",
+            "otb": "OTB-001",
+            "jalur1": {
+              "kabel": "SC-6",
+              "tube": "1",
+              "core": "1-6",
+              "panjang": "350"
+            },
+            "cj1": "CJ-A",
+            "jalur2": {
+              "kabel": "SC-6",
+              "tube": "2",
+              "core": "1-6",
+              "panjang": "280"
+            },
+            "cj2": "CJ-B",
+            "jalur3": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj3": "",
+            "jalur4": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj4": "",
+            "totalPanjang": "630",
+            "statusRoute": "Aktif",
+            "linkDokumentasi": "https://drive.google.com/dummy-rta1",
+            "catatan": "Sudah divalidasi"
+          },
+          {
+            "id": "rta-2",
+            "no": 2,
+            "batch": "Batch 1",
+            "warnaArea": "Biru",
+            "namaArea": "Area Pandaan Pusat",
+            "otb": "OTB-002",
+            "jalur1": {
+              "kabel": "SC-12",
+              "tube": "1",
+              "core": "1-12",
+              "panjang": "500"
+            },
+            "cj1": "CJ-A",
+            "jalur2": {
+              "kabel": "SC-12",
+              "tube": "2",
+              "core": "1-12",
+              "panjang": "420"
+            },
+            "cj2": "CJ-B",
+            "jalur3": {
+              "kabel": "SC-12",
+              "tube": "3",
+              "core": "1-12",
+              "panjang": "310"
+            },
+            "cj3": "CJ-C",
+            "jalur4": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj4": "",
+            "totalPanjang": "1230",
+            "statusRoute": "Aktif",
+            "linkDokumentasi": "https://drive.google.com/dummy-rta2",
+            "catatan": "-"
+          },
+          {
+            "id": "rta-3",
+            "no": 3,
+            "batch": "Batch 2",
+            "warnaArea": "Hijau",
+            "namaArea": "Area Gempol Selatan",
+            "otb": "OTB-003",
+            "jalur1": {
+              "kabel": "SC-6",
+              "tube": "1",
+              "core": "1-6",
+              "panjang": "200"
+            },
+            "cj1": "CJ-A",
+            "jalur2": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj2": "",
+            "jalur3": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj3": "",
+            "jalur4": {
+              "kabel": "-",
+              "tube": "-",
+              "core": "-",
+              "panjang": ""
+            },
+            "cj4": "",
+            "totalPanjang": "200",
+            "statusRoute": "Pending",
+            "linkDokumentasi": "",
+            "catatan": "Menunggu validasi lapangan"
+          }
+        ]
+      },
+      {
+        "id": "m1-5",
+        "name": "Pembangunan POP ODC",
+        "status": "Aktif",
+        "progress": 45,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "pembangunanPopData": [
+          {
+            "id": "ppop-1",
+            "no": 1,
+            "surveyor": "Dimas Rantung",
+            "date": "01/09/2026",
+            "status": "On Progress",
+            "recommendation": "Lanjutkan",
+            "infoLokasi": {
+              "fotoLokasi": "https://drive.google.com/dummy-ppop1-foto",
+              "alamatLokasi": "Perumahan Graha Pandaan, Jl. Graha Pandaan Blok A No.5",
+              "linkGmaps": "https://maps.app.goo.gl/dummy-ppop1"
+            },
+            "pembangunanODC": {
+              "statusRAB": "Approved",
+              "statusPengadaan": "On Progress",
+              "statusPembangunan": "Belum Mulai",
+              "statusInstalasi": "Belum Mulai",
+              "statusUjiKelayakan": "Belum Mulai"
+            },
+            "kelistrikanODC": {
+              "statusPengajuanPLN": "Submitted",
+              "statusInstalasiListrik": "Belum Mulai",
+              "statusListrikODC": "Belum Mulai"
+            },
+            "aktivasiPerangkat": {
+              "statusPersiapan": "Belum Mulai",
+              "statusKonfigurasi": "Belum Mulai",
+              "statusAktivasiODC": "Belum Mulai"
+            },
+            "dokumentasi": {
+              "targetODCReady": "30/09/2026",
+              "aktualODCReady": "-",
+              "catatanKendala": "Material ODC masih dalam proses pengiriman dari gudang pusat",
+              "linkDokumentasi": "https://drive.google.com/dummy-ppop1"
+            }
+          },
+          {
+            "id": "ppop-2",
+            "no": 2,
+            "surveyor": "Dimas Rantung",
+            "date": "02/09/2026",
+            "status": "Survey Selesai",
+            "recommendation": "Direkomendasikan",
+            "infoLokasi": {
+              "fotoLokasi": "",
+              "alamatLokasi": "Kantor Desa Karangjati, Jl. Raya Karangjati No.1",
+              "linkGmaps": "https://maps.app.goo.gl/dummy-ppop2"
+            },
+            "pembangunanODC": {
+              "statusRAB": "Draft",
+              "statusPengadaan": "Belum Mulai",
+              "statusPembangunan": "Belum Mulai",
+              "statusInstalasi": "Belum Mulai",
+              "statusUjiKelayakan": "Belum Mulai"
+            },
+            "kelistrikanODC": {
+              "statusPengajuanPLN": "Belum Mulai",
+              "statusInstalasiListrik": "Belum Mulai",
+              "statusListrikODC": "Belum Mulai"
+            },
+            "aktivasiPerangkat": {
+              "statusPersiapan": "Belum Mulai",
+              "statusKonfigurasi": "Belum Mulai",
+              "statusAktivasiODC": "Belum Mulai"
+            },
+            "dokumentasi": {
+              "targetODCReady": "15/10/2026",
+              "aktualODCReady": "-",
+              "catatanKendala": "-",
+              "linkDokumentasi": ""
+            }
+          }
+        ]
+      },
+      {
+        "id": "m1-6",
+        "name": "Pemasangan Tiang",
+        "status": "Aktif",
+        "progress": 38,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "pemasanganTiangData": [
+          {
+            "id": "ptg-1",
+            "no": 1,
+            "idTiang": "TG-PDN-001",
+            "lokasi": "Jl. Raya Pandaan Segmen A - RW 01",
+            "linkGmaps": "https://maps.app.goo.gl/dummy-tg1",
+            "jenisTiang": "Tiang Beton 9m",
+            "statusPekerjaan": "Selesai",
+            "statusQC": "Lolos QC",
+            "linkDokumentasi": "https://drive.google.com/dummy-tg1",
+            "catatan": "-",
+            "lampiranFormQC": "https://drive.google.com/dummy-tg1-qc",
+            "lampiranFormTanam": "https://drive.google.com/dummy-tg1-tanam"
+          },
+          {
+            "id": "ptg-2",
+            "no": 2,
+            "idTiang": "TG-PDN-002",
+            "lokasi": "Jl. Raya Pandaan Segmen A - RW 02",
+            "linkGmaps": "https://maps.app.goo.gl/dummy-tg2",
+            "jenisTiang": "Tiang Beton 9m",
+            "statusPekerjaan": "On Progress",
+            "statusQC": "Belum QC",
+            "linkDokumentasi": "",
+            "catatan": "Proses penggalian",
+            "lampiranFormQC": "",
+            "lampiranFormTanam": ""
+          },
+          {
+            "id": "ptg-3",
+            "no": 3,
+            "idTiang": "TG-PDN-003",
+            "lokasi": "Jl. Karangjati Segmen B - RW 03",
+            "linkGmaps": "https://maps.app.goo.gl/dummy-tg3",
+            "jenisTiang": "Tiang Besi 7m",
+            "statusPekerjaan": "Belum Mulai",
+            "statusQC": "Belum QC",
+            "linkDokumentasi": "",
+            "catatan": "-",
+            "lampiranFormQC": "",
+            "lampiranFormTanam": ""
+          },
+          {
+            "id": "ptg-4",
+            "no": 4,
+            "idTiang": "TG-PDN-004",
+            "lokasi": "Jl. Karangjati Segmen B - RW 04",
+            "linkGmaps": "https://maps.app.goo.gl/dummy-tg4",
+            "jenisTiang": "Tiang Beton 9m",
+            "statusPekerjaan": "Selesai",
+            "statusQC": "Revisi",
+            "linkDokumentasi": "https://drive.google.com/dummy-tg4",
+            "catatan": "Posisi tiang perlu dikoreksi 50cm",
+            "lampiranFormQC": "https://drive.google.com/dummy-tg4-qc",
+            "lampiranFormTanam": ""
+          }
+        ]
+      },
+      {
+        "id": "m1-7",
+        "name": "Fasum (Free WiFi)",
+        "status": "Aktif",
+        "progress": 25,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "fasumData": [
+          {
+            "id": "fsm-1",
+            "no": 1,
+            "namaArea": "Area Karangjati Utara",
+            "kelurahan": "Karangjati",
+            "rw": "01",
+            "rt": "02",
+            "lokasiFasum": "Depan Balai RW 01, Jl. Melati No.5",
+            "pemohon": "Pak Ahmad (Ketua RW 01)",
+            "status": "Approved",
+            "titikKoordinat": "-7.6342, 112.7821",
+            "linkDokumentasi": "https://drive.google.com/dummy-fsm1"
+          },
+          {
+            "id": "fsm-2",
+            "no": 2,
+            "namaArea": "Area Pandaan Pusat",
+            "kelurahan": "Pandaan",
+            "rw": "03",
+            "rt": "05",
+            "lokasiFasum": "Taman Kota Pandaan, Jl. Raya Pandaan",
+            "pemohon": "Kelurahan Pandaan",
+            "status": "On Progress",
+            "titikKoordinat": "-7.6218, 112.7943",
+            "linkDokumentasi": "https://drive.google.com/dummy-fsm2"
+          },
+          {
+            "id": "fsm-3",
+            "no": 3,
+            "namaArea": "Area Gempol Selatan",
+            "kelurahan": "Gempol",
+            "rw": "02",
+            "rt": "01",
+            "lokasiFasum": "Pos Ronda RW 02, Jl. Gempol Indah",
+            "pemohon": "Pak Slamet (Ketua RW 02)",
+            "status": "Pending",
+            "titikKoordinat": "-7.6501, 112.7695",
+            "linkDokumentasi": ""
+          },
+          {
+            "id": "fsm-4",
+            "no": 4,
+            "namaArea": "Area Karangjati Selatan",
+            "kelurahan": "Karangjati",
+            "rw": "04",
+            "rt": "03",
+            "lokasiFasum": "Masjid Al-Ikhlas, Jl. Mawar No.12",
+            "pemohon": "Pengurus Masjid Al-Ikhlas",
+            "status": "Rejected",
+            "titikKoordinat": "-7.6398, 112.7756",
+            "linkDokumentasi": ""
+          }
+        ]
+      },
+      {
+        "id": "mon-banner-br-1",
+        "name": "Pemasangan Banner",
+        "status": "Planning",
+        "progress": 100,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "bannerData": [
+          {
+            "id": "bnr-1",
+            "no": 1,
+            "kecamatan": "Blimbing",
+            "kelurahan": "Pusat",
+            "kodeArea": "BNR-01",
+            "titikKoordinat": "-7.6218, 112.7943",
+            "linkMaps": "https://maps.google.com",
+            "status": "Terpasang",
+            "pic": "Rizky Pratama",
+            "targetPemasangan": "10/09/2026",
+            "tanggalPemasangan": "05/09/2026",
+            "foto": "https://images.unsplash.com/photo-1572945753563-804ec13c6395",
+            "keterangan": "Banner vertikal ukuran 2x3 meter di pertigaan jalan utama"
+          }
+        ]
+      },
+      {
+        "id": "mon-material-br-1",
+        "name": "Pengajuan Material",
+        "status": "Completed",
+        "progress": 90,
+        "lastUpdated": "04 Sep 2026, 09:30",
+        "materialData": [
+          {
+            "id": "mat-1",
+            "no": 1,
+            "jenisMaterial": "Atribut AE",
+            "namaMaterial": "Seragam Polo & Rompi AE",
+            "kebutuhan": 20,
+            "ready": 20,
+            "gap": 0,
+            "status": "Completed",
+            "linkBAST": "https://docs.google.com/bast-1",
+            "catatan": "Pengadaan batch 1"
+          },
+          {
+            "id": "mat-2",
+            "no": 2,
+            "jenisMaterial": "Tools",
+            "namaMaterial": "Fusion Splicer & Cleaver FO",
+            "kebutuhan": 4,
+            "ready": 4,
+            "gap": 0,
+            "status": "Completed",
+            "linkBAST": "https://docs.google.com/bast-2",
+            "catatan": "Siap operasional"
+          },
+          {
+            "id": "mat-3",
+            "no": 3,
+            "jenisMaterial": "Kantor",
+            "namaMaterial": "Meja Kerja, Kursi & Dispenser",
+            "kebutuhan": 10,
+            "ready": 10,
+            "gap": 0,
+            "status": "Completed",
+            "linkBAST": "",
+            "catatan": "Pesanan vendor lokal"
+          }
+        ]
+      }
+    ],
+    "lifecycleStatus": "Release",
+    "targetOpenDate": "2026-09-15",
+    "projectLeader": "Rizky Pratama"
+  },
+  {
+    "id": "br-2",
+    "name": "Branch Surabaya",
+    "location": "Surabaya, Jawa Timur",
+    "status": "Aktif",
+    "progress": 58,
+    "lastUpdated": "03 Sep 2026, 16:20",
+    "monitors": [
+      {
+        "id": "mon-rt",
+        "name": "Opsi Lokasi POP ODC",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "popOdcOptions": []
+      },
+      {
+        "id": "mon-ru",
+        "name": "Permit",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "permitData": []
+      },
+      {
+        "id": "mon-rv",
+        "name": "Plan Area",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "planAreaData": []
+      },
+      {
+        "id": "mon-rw",
+        "name": "Opsi Lokasi Kantor Branch",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "branchOfficeOptions": []
+      },
+      {
+        "id": "mon-rx",
+        "name": "Route Area",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "routeAreaData": []
+      },
+      {
+        "id": "mon-ry",
+        "name": "Pembangunan POP ODC",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "pembangunanPopData": []
+      },
+      {
+        "id": "mon-rz",
+        "name": "Pemasangan Tiang",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "pemasanganTiangData": []
+      },
+      {
+        "id": "mon-s0",
+        "name": "Fasum (Free WiFi)",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "fasumData": []
+      },
+      {
+        "id": "mon-banner-br-2",
+        "name": "Pemasangan Banner",
+        "status": "Planning",
+        "progress": 50,
+        "lastUpdated": "03 Sep 2026, 16:20",
+        "bannerData": [
+          {
+            "id": "bnr-1",
+            "no": 1,
+            "kecamatan": "Pandaan",
+            "kelurahan": "Pusat",
+            "kodeArea": "BNR-01",
+            "titikKoordinat": "-7.6218, 112.7943",
+            "linkMaps": "https://maps.google.com",
+            "status": "Survey Selesai",
+            "pic": "Ahmad Fauzi",
+            "targetPemasangan": "10/09/2026",
+            "tanggalPemasangan": "-",
+            "foto": "https://images.unsplash.com/photo-1572945753563-804ec13c6395",
+            "keterangan": "Banner vertikal ukuran 2x3 meter di pertigaan jalan utama"
+          }
+        ]
+      },
+      {
+        "id": "mon-material-br-2",
+        "name": "Pengajuan Material",
+        "status": "On Progress",
+        "progress": 40,
+        "lastUpdated": "03 Sep 2026, 16:20",
+        "materialData": [
+          {
+            "id": "mat-1",
+            "no": 1,
+            "jenisMaterial": "Atribut AE",
+            "namaMaterial": "Seragam Polo & Rompi AE",
+            "kebutuhan": 20,
+            "ready": 12,
+            "gap": 8,
+            "status": "On Progress",
+            "linkBAST": "https://docs.google.com/bast-1",
+            "catatan": "Pengadaan batch 1"
+          },
+          {
+            "id": "mat-2",
+            "no": 2,
+            "jenisMaterial": "Tools",
+            "namaMaterial": "Fusion Splicer & Cleaver FO",
+            "kebutuhan": 4,
+            "ready": 2,
+            "gap": 2,
+            "status": "On Progress",
+            "linkBAST": "https://docs.google.com/bast-2",
+            "catatan": "Siap operasional"
+          },
+          {
+            "id": "mat-3",
+            "no": 3,
+            "jenisMaterial": "Kantor",
+            "namaMaterial": "Meja Kerja, Kursi & Dispenser",
+            "kebutuhan": 10,
+            "ready": 5,
+            "gap": 5,
+            "status": "Planning",
+            "linkBAST": "",
+            "catatan": "Pesanan vendor lokal"
+          }
+        ]
+      }
+    ],
+    "lifecycleStatus": "Pra-Release",
+    "targetOpenDate": "2026-11-20",
+    "projectLeader": "Ahmad Fauzi"
+  },
+  {
+    "id": "br-3",
+    "name": "Branch Kediri",
+    "location": "Kediri, Jawa Timur",
+    "status": "Non-aktif",
+    "progress": 35,
+    "lastUpdated": "01 Sep 2026, 14:10",
+    "monitors": [
+      {
+        "id": "mon-s1",
+        "name": "Opsi Lokasi POP ODC",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "popOdcOptions": []
+      },
+      {
+        "id": "mon-s2",
+        "name": "Permit",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "permitData": []
+      },
+      {
+        "id": "mon-s3",
+        "name": "Plan Area",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "planAreaData": []
+      },
+      {
+        "id": "mon-s4",
+        "name": "Opsi Lokasi Kantor Branch",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "branchOfficeOptions": []
+      },
+      {
+        "id": "mon-s5",
+        "name": "Route Area",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "routeAreaData": []
+      },
+      {
+        "id": "mon-s6",
+        "name": "Pembangunan POP ODC",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "pembangunanPopData": []
+      },
+      {
+        "id": "mon-s7",
+        "name": "Pemasangan Tiang",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "pemasanganTiangData": []
+      },
+      {
+        "id": "mon-s8",
+        "name": "Fasum (Free WiFi)",
+        "status": "Aktif",
+        "progress": 0,
+        "lastUpdated": "-",
+        "fasumData": []
+      },
+      {
+        "id": "mon-banner-br-3",
+        "name": "Pemasangan Banner",
+        "status": "Planning",
+        "progress": 0,
+        "lastUpdated": "01 Sep 2026, 14:10",
+        "bannerData": [
+          {
+            "id": "bnr-1",
+            "no": 1,
+            "kecamatan": "Pandaan",
+            "kelurahan": "Pusat",
+            "kodeArea": "BNR-01",
+            "titikKoordinat": "-7.6218, 112.7943",
+            "linkMaps": "https://maps.google.com",
+            "status": "Survey Selesai",
+            "pic": "Rian Hidayat",
+            "targetPemasangan": "10/09/2026",
+            "tanggalPemasangan": "-",
+            "foto": "https://images.unsplash.com/photo-1572945753563-804ec13c6395",
+            "keterangan": "Banner vertikal ukuran 2x3 meter di pertigaan jalan utama"
+          }
+        ]
+      },
+      {
+        "id": "mon-material-br-3",
+        "name": "Pengajuan Material",
+        "status": "On Progress",
+        "progress": 10,
+        "lastUpdated": "01 Sep 2026, 14:10",
+        "materialData": [
+          {
+            "id": "mat-1",
+            "no": 1,
+            "jenisMaterial": "Atribut AE",
+            "namaMaterial": "Seragam Polo & Rompi AE",
+            "kebutuhan": 20,
+            "ready": 12,
+            "gap": 8,
+            "status": "On Progress",
+            "linkBAST": "https://docs.google.com/bast-1",
+            "catatan": "Pengadaan batch 1"
+          },
+          {
+            "id": "mat-2",
+            "no": 2,
+            "jenisMaterial": "Tools",
+            "namaMaterial": "Fusion Splicer & Cleaver FO",
+            "kebutuhan": 4,
+            "ready": 2,
+            "gap": 2,
+            "status": "On Progress",
+            "linkBAST": "https://docs.google.com/bast-2",
+            "catatan": "Siap operasional"
+          },
+          {
+            "id": "mat-3",
+            "no": 3,
+            "jenisMaterial": "Kantor",
+            "namaMaterial": "Meja Kerja, Kursi & Dispenser",
+            "kebutuhan": 10,
+            "ready": 5,
+            "gap": 5,
+            "status": "Planning",
+            "linkBAST": "",
+            "catatan": "Pesanan vendor lokal"
+          }
+        ]
+      }
+    ],
+    "lifecycleStatus": "Draft",
+    "targetOpenDate": "2027-02-15",
+    "projectLeader": "Rian Hidayat"
+  }
+]

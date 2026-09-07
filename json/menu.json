@@ -1,0 +1,87 @@
+[
+  {
+    "group": "Dasaria Workflow Playbook",
+    "items": [
+      {
+        "key": "governance-quality-manual",
+        "label": "Governance & Quality Manual",
+        "desc": "Kebijakan, prinsip, standar mutu",
+        "icon": "shield",
+        "real": false
+      },
+      {
+        "key": "job-description",
+        "label": "Role Charter / Job Description",
+        "desc": "Tanggung jawab dan kewenangan",
+        "icon": "building",
+        "real": true
+      },
+      {
+        "key": "sop",
+        "label": "SOP",
+        "desc": "Alur proses kerja",
+        "icon": "fileText",
+        "real": false
+      },
+      {
+        "key": "technical-handbook",
+        "label": "Technical Handbook",
+        "desc": "Metode teknis dan cara penerapan",
+        "icon": "book",
+        "real": false
+      },
+      {
+        "key": "knowledge-base",
+        "label": "Knowledge Base",
+        "desc": "Materi keilmuan, konsep, teori, referensi",
+        "icon": "search",
+        "real": false
+      },
+      {
+        "key": "forms-records",
+        "label": "Forms & Records",
+        "desc": "Bukti pelaksanaan",
+        "icon": "edit",
+        "real": false
+      }
+    ]
+  },
+  {
+    "group": "Strategic Growth & Product",
+    "items": [
+      {
+        "key": "open-branch",
+        "label": "Open Branch",
+        "desc": "Monitoring pembukaan cabang",
+        "icon": "location",
+        "real": true
+      },
+      {
+        "key": "kuartal",
+        "label": "Kuartal",
+        "desc": "Pencapaian branch & target",
+        "icon": "inbox",
+        "real": true
+      }
+    ]
+  },
+  {
+    "group": "Cross-Functional",
+    "items": [
+      {
+        "key": "project-management",
+        "label": "Project Management",
+        "desc": "Kanban board & task tracking",
+        "icon": "inbox",
+        "real": true
+      },
+      {
+        "key": "schedule-management",
+        "label": "Management Schedule",
+        "desc": "Absensi, pengajuan izin & cuti, jadwal libur",
+        "icon": "calendar",
+        "real": true
+      }
+    ]
+  }
+]

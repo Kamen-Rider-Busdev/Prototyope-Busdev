@@ -1,0 +1,147 @@
+[
+  {
+    "id": "dir-pcc",
+    "name": "People Corporate Compliance",
+    "divisions": [
+      {
+        "id": "div-hc",
+        "name": "Human Capital",
+        "directorateId": "dir-pcc",
+        "headOfDivisionJobRoleId": "role-hod-hc",
+        "departments": [
+          {
+            "id": "dept-ta",
+            "name": "Talent Acquisition",
+            "divisionId": "div-hc",
+            "headOfDepartmentJobRoleId": "role-hodept-ta",
+            "jobRoles": [
+              {
+                "id": "role-hodept-ta",
+                "name": "Head of Department Talent Acquisition",
+                "type": "Head of Department",
+                "departmentId": "dept-ta",
+                "supervisor": "Head of Division Human Capital",
+                "jd": {}
+              },
+              {
+                "id": "role-ftr",
+                "name": "Field Talent Recruiter",
+                "type": "Staff",
+                "departmentId": "dept-ta",
+                "supervisor": "Head of Department Talent Acquisition",
+                "jd": {}
+              },
+              {
+                "id": "role-cr",
+                "name": "Corporate Recruiter",
+                "type": "Staff",
+                "departmentId": "dept-ta",
+                "supervisor": "Head of Department Talent Acquisition",
+                "jd": {}
+              }
+            ]
+          },
+          {
+            "id": "dept-pd",
+            "name": "People Development",
+            "divisionId": "div-hc",
+            "headOfDepartmentJobRoleId": null,
+            "jobRoles": []
+          }
+        ]
+      },
+      {
+        "id": "div-cl",
+        "name": "Compliance & Legal",
+        "directorateId": "dir-pcc",
+        "headOfDivisionJobRoleId": null,
+        "departments": [
+          {
+            "id": "dept-rc",
+            "name": "Regulatory Compliance",
+            "divisionId": "div-cl",
+            "headOfDepartmentJobRoleId": "role-hodept-rc",
+            "jobRoles": [
+              {
+                "id": "role-hodept-rc",
+                "name": "Head of Department Regulatory Compliance",
+                "type": "Head of Department",
+                "departmentId": "dept-rc",
+                "supervisor": "Head of Division Compliance & Legal",
+                "jd": {}
+              },
+              {
+                "id": "role-ca",
+                "name": "Compliance Analyst",
+                "type": "Staff",
+                "departmentId": "dept-rc",
+                "supervisor": "Head of Department Regulatory Compliance",
+                "jd": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dir-bd",
+    "name": "Business Development",
+    "divisions": [
+      {
+        "id": "div-sp",
+        "name": "Strategic Partnerships",
+        "directorateId": "dir-bd",
+        "headOfDivisionJobRoleId": "role-hod-sp",
+        "departments": [
+          {
+            "id": "dept-pdv",
+            "name": "Partnership Development",
+            "divisionId": "div-sp",
+            "headOfDepartmentJobRoleId": null,
+            "jobRoles": [
+              {
+                "id": "role-po",
+                "name": "Partnership Officer",
+                "type": "Staff",
+                "departmentId": "dept-pdv",
+                "supervisor": "Head of Department Partnership Development",
+                "jd": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dir-td",
+    "name": "Technology & Digital",
+    "divisions": [
+      {
+        "id": "div-dp",
+        "name": "Digital Product",
+        "directorateId": "dir-td",
+        "headOfDivisionJobRoleId": null,
+        "departments": [
+          {
+            "id": "dept-pe",
+            "name": "Product Engineering",
+            "divisionId": "div-dp",
+            "headOfDepartmentJobRoleId": null,
+            "jobRoles": [
+              {
+                "id": "role-se",
+                "name": "Software Engineer",
+                "type": "Staff",
+                "departmentId": "dept-pe",
+                "supervisor": "Head of Department Product Engineering",
+                "jd": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

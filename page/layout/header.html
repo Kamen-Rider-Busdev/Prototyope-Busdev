@@ -1,0 +1,19 @@
+<div class="header">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-ghost btn" id="mobile-nav-toggle" style="display:none;padding:6px;">☰</button>
+    <div class="header-title">{{pageTitle}}</div>
+  </div>
+  <div class="header-right">
+    <div class="theme-toggle">
+      <button class="{{lightActive}}" id="theme-light" aria-label="Light mode">{{iconSun}}</button>
+      <button class="{{darkActive}}" id="theme-dark" aria-label="Dark mode">{{iconMoon}}</button>
+    </div>
+    <div class="user-menu">
+      <button class="user-chip" id="user-menu-btn">
+        <div class="avatar">BD</div>
+        <span class="name">Budi Santoso</span>
+      </button>
+      {{userDropdownHtml}}
+    </div>
+  </div>
+</div>

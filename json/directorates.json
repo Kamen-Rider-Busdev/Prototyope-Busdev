@@ -1,0 +1,542 @@
+[
+  {
+    "id": "dir-pcc",
+    "name": "People Corporate Compliance",
+    "divisions": [
+      {
+        "id": "div-hc",
+        "name": "Human Capital",
+        "directorateId": "dir-pcc",
+        "headOfDivisionJobRoleId": "role-hod-hc",
+        "departments": [
+          {
+            "id": "dept-ta",
+            "name": "Talent Acquisition",
+            "divisionId": "div-hc",
+            "headOfDepartmentJobRoleId": "role-hodept-ta",
+            "jobRoles": [
+              {
+                "id": "role-hodept-ta",
+                "name": "Head of Department Talent Acquisition",
+                "type": "Head of Department",
+                "departmentId": "dept-ta",
+                "supervisor": "Head of Division Human Capital",
+                "jd": {
+                  "description": "",
+                  "objectives": [],
+                  "authorities": {
+                    "granted": [],
+                    "limitations": []
+                  },
+                  "responsibilities": [],
+                  "kpi": [],
+                  "ksao": {
+                    "knowledge": [],
+                    "skill": [],
+                    "ability": [],
+                    "other": []
+                  },
+                  "requirements": {
+                    "pendidikan": "",
+                    "pengalaman": [],
+                    "teknis": [],
+                    "nonTeknis": []
+                  },
+                  "risks": [],
+                  "regulations": [],
+                  "leadership": [],
+                  "assessments": [],
+                  "communication": [],
+                  "candidateCompetencies": []
+                }
+              },
+              {
+                "id": "role-ftr",
+                "name": "Field Talent Recruiter",
+                "type": "Staff",
+                "departmentId": "dept-ta",
+                "supervisor": "Head of Department Talent Acquisition",
+                "jd": {
+                  "description": "Posisi Field Talent Acquisition adalah eksekutor lini depan dalam pemenuhan talenta operasional untuk seluruh unit kerja di wilayah cabang dan lapangan. Peran ini bertanggung jawab menjalankan proses sourcing, screening administratif, koordinasi tes praktik/fisik, serta validasi data pelamar agar kebutuhan tenaga kerja di cabang terpenuhi tepat waktu sesuai SLA yang berlaku, sekaligus menjaga kepatuhan terhadap SOP rekrutmen yang ditetapkan perusahaan.",
+                  "objectives": [
+                    "Terpenuhinya kuota pemenuhan kandidat operasional/lapangan di cabang tepat waktu sesuai SLA.",
+                    "Dokumentasi hasil screening, work endurance assessment, dan validasi data pelamar yang terstruktur.",
+                    "Pemutakhiran status tracker kandidat secara real-time."
+                  ],
+                  "authorities": {
+                    "granted": [
+                      "Menentukan kandidat yang lolos atau gugur pada tahap awal administrative screening.",
+                      "Memilih local sourcing channel yang efektif.",
+                      "Mengatur jadwal dan memfasilitasi tes praktik/tes fisik.",
+                      "Memperbarui status kualifikasi kandidat."
+                    ],
+                    "limitations": [
+                      "Memutuskan kelolosan final tanpa persetujuan User Cabang.",
+                      "Mengubah struktur kompensasi tanpa persetujuan CRC.",
+                      "Memproses kandidat di luar FPTK resmi."
+                    ]
+                  },
+                  "responsibilities": [
+                    {
+                      "pillar": "Analisis & Perencanaan Teknis",
+                      "tasks": [
+                        {
+                          "title": "Analisis Kebutuhan Rekrutmen Wilayah",
+                          "desc": "Memahami kebutuhan tenaga kerja berdasarkan FPTK dan kondisi operasional cabang di wilayah kerja."
+                        },
+                        {
+                          "title": "Analisis Ketersediaan Talent Lokal",
+                          "desc": "Mengidentifikasi kondisi dan ketersediaan kandidat pada pasar tenaga kerja lokal/regional."
+                        },
+                        {
+                          "title": "Analisis Sourcing Channel",
+                          "desc": "Mengevaluasi efektivitas channel lokal yang digunakan untuk menjangkau kandidat potensial."
+                        }
+                      ]
+                    },
+                    {
+                      "pillar": "Persiapan & Pengembangan Teknis",
+                      "tasks": [
+                        {
+                          "title": "Penyusunan Materi Sourcing Lokal",
+                          "desc": "Menyiapkan materi dan pesan sourcing yang relevan dengan konteks budaya dan kebutuhan wilayah."
+                        },
+                        {
+                          "title": "Koordinasi dengan User Cabang",
+                          "desc": "Menyelaraskan kriteria dan ekspektasi kandidat bersama User Cabang sebelum proses rekrutmen dimulai."
+                        }
+                      ]
+                    },
+                    {
+                      "pillar": "Monitoring & Pengawasan Teknis",
+                      "tasks": [
+                        {
+                          "title": "Pemantauan Progres Rekrutmen",
+                          "desc": "Memantau tahapan rekrutmen agar tetap berjalan sesuai timeline SLA yang ditetapkan."
+                        },
+                        {
+                          "title": "Pelaporan Status Tracker",
+                          "desc": "Memperbarui status kandidat secara berkala pada sistem tracker rekrutmen."
+                        }
+                      ]
+                    },
+                    {
+                      "pillar": "Validasi & Kontrol Kualitas",
+                      "tasks": [
+                        {
+                          "title": "Validasi Dokumen Administratif",
+                          "desc": "Memastikan kelengkapan dan keabsahan dokumen pelamar sebelum diteruskan ke tahap berikutnya."
+                        },
+                        {
+                          "title": "Work Endurance Assessment",
+                          "desc": "Melaksanakan asesmen ketahanan kerja untuk memastikan kesesuaian kandidat dengan tuntutan pekerjaan lapangan."
+                        }
+                      ]
+                    },
+                    {
+                      "pillar": "Pelaksanaan Teknis (Kondisional)",
+                      "tasks": [
+                        {
+                          "title": "Fasilitasi Tes Praktik/Fisik",
+                          "desc": "Mengatur dan mendampingi pelaksanaan tes praktik atau tes fisik sesuai kebutuhan posisi."
+                        }
+                      ]
+                    }
+                  ],
+                  "kpi": [
+                    {
+                      "keterangan": "Penyelesaian proses rekrutmen dari FPTK diterima hingga kandidat onboard",
+                      "waktu": "< 30 Hari Kalender",
+                      "kualitas": "Sesuai kriteria FPTK",
+                      "akurasi": "-",
+                      "biaya": "Sesuai budget"
+                    },
+                    {
+                      "keterangan": "Akurasi data dan dokumentasi kandidat pada sistem tracker",
+                      "waktu": "-",
+                      "kualitas": "-",
+                      "akurasi": "Minimal 95%",
+                      "biaya": "-"
+                    }
+                  ],
+                  "ksao": {
+                    "knowledge": [
+                      "Recruitment Governance",
+                      "SOP Dasaria",
+                      "FPTK",
+                      "Local/regional labor market",
+                      "Administrative/legal documentation",
+                      "Work endurance"
+                    ],
+                    "skill": [
+                      "Local active sourcing",
+                      "Google Workspace",
+                      "HR Interview"
+                    ],
+                    "ability": [
+                      "Talent scarcity",
+                      "Alignment technical criteria",
+                      "Mass-hiring"
+                    ],
+                    "other": [
+                      "Agile & Resilience",
+                      "Detail-Oriented & Systematic",
+                      "Communicative & Collaborative"
+                    ]
+                  },
+                  "requirements": {
+                    "pendidikan": "S1 Psikologi, Manajemen SDM, atau jurusan sejenis.",
+                    "pengalaman": [
+                      "Fresh graduate diperbolehkan.",
+                      "Termasuk pengalaman magang.",
+                      "Usia maksimal 28 tahun."
+                    ],
+                    "teknis": [
+                      "Google Workspace",
+                      "Job portal",
+                      "Social media sourcing",
+                      "Psikotes",
+                      "ATS (opsional)"
+                    ],
+                    "nonTeknis": [
+                      "Komunikasi interpersonal",
+                      "Attention to detail",
+                      "Organization",
+                      "Time management",
+                      "Adaptability",
+                      "Resilience"
+                    ]
+                  },
+                  "risks": [
+                    {
+                      "cat": "Risiko Kualitas",
+                      "desc": "Terlolosnya kandidat lapangan yang kurang memiliki ketahanan kerja sehingga dapat menyebabkan turnover awal."
+                    },
+                    {
+                      "cat": "Risiko Operasional",
+                      "desc": "Terjadinya kekosongan posisi teknis di cabang akibat pemenuhan melebihi SLA 30 hari."
+                    },
+                    {
+                      "cat": "Risiko Kepatuhan",
+                      "desc": "Pelanggaran SOP akibat dokumen tidak lengkap atau proses tanpa FPTK."
+                    },
+                    {
+                      "cat": "Risiko Finansial",
+                      "desc": "Pemborosan biaya akibat kandidat melakukan ghosting."
+                    }
+                  ],
+                  "regulations": [
+                    {
+                      "name": "SOP Rekrutmen Cabang & Lapangan",
+                      "link": "https://docs.google.com/document/..."
+                    },
+                    {
+                      "name": "Kebijakan Standar Upah Minimum Regional",
+                      "link": "-"
+                    }
+                  ],
+                  "leadership": [],
+                  "assessments": [
+                    {
+                      "method": "Interview HR & Observasi Fisik",
+                      "evidence": "Form Hasil Wawancara & Checklist Ketahanan Fisik"
+                    },
+                    {
+                      "method": "Pemeriksaan Berkas Kelengkapan Administratif",
+                      "evidence": "Checklist Dokumen Pelamar"
+                    }
+                  ],
+                  "communication": [
+                    {
+                      "type": "Internal",
+                      "party": "Talent Acquisition Supervisor",
+                      "purpose": "Koordinasi progres rekrutmen dan eskalasi kendala di lapangan.",
+                      "output": "Update status rekrutmen mingguan."
+                    },
+                    {
+                      "type": "Internal",
+                      "party": "Rekan Corporate & Field Recruiter",
+                      "purpose": "Menyelaraskan sourcing channel dan berbagi kandidat lintas wilayah.",
+                      "output": "Kolaborasi database kandidat."
+                    },
+                    {
+                      "type": "Internal",
+                      "party": "User Cabang",
+                      "purpose": "Konfirmasi kriteria kandidat dan persetujuan kelolosan final.",
+                      "output": "Keputusan kelolosan kandidat."
+                    }
+                  ],
+                  "candidateCompetencies": [
+                    {
+                      "ksao": "K, S, A",
+                      "competency": "Local Active Sourcing & Community Engagement",
+                      "category": "Fungsional",
+                      "documentName": "Panduan Sourcing Lokal",
+                      "documentUrl": "#"
+                    },
+                    {
+                      "ksao": "K, S",
+                      "competency": "Operational Work Endurance & Culture Fit Assessment",
+                      "category": "Fungsional",
+                      "documentName": "",
+                      "documentUrl": ""
+                    },
+                    {
+                      "ksao": "S, A, O",
+                      "competency": "Candidate Communication & Field Engagement",
+                      "category": "Fungsional",
+                      "documentName": "",
+                      "documentUrl": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "role-cr",
+                "name": "Corporate Recruiter",
+                "type": "Staff",
+                "departmentId": "dept-ta",
+                "supervisor": "Head of Department Talent Acquisition",
+                "jd": {
+                  "description": "",
+                  "objectives": [],
+                  "authorities": {
+                    "granted": [],
+                    "limitations": []
+                  },
+                  "responsibilities": [],
+                  "kpi": [],
+                  "ksao": {
+                    "knowledge": [],
+                    "skill": [],
+                    "ability": [],
+                    "other": []
+                  },
+                  "requirements": {
+                    "pendidikan": "",
+                    "pengalaman": [],
+                    "teknis": [],
+                    "nonTeknis": []
+                  },
+                  "risks": [],
+                  "regulations": [],
+                  "leadership": [],
+                  "assessments": [],
+                  "communication": [],
+                  "candidateCompetencies": []
+                }
+              }
+            ]
+          },
+          {
+            "id": "dept-pd",
+            "name": "People Development",
+            "divisionId": "div-hc",
+            "headOfDepartmentJobRoleId": null,
+            "jobRoles": []
+          }
+        ]
+      },
+      {
+        "id": "div-cl",
+        "name": "Compliance & Legal",
+        "directorateId": "dir-pcc",
+        "headOfDivisionJobRoleId": null,
+        "departments": [
+          {
+            "id": "dept-rc",
+            "name": "Regulatory Compliance",
+            "divisionId": "div-cl",
+            "headOfDepartmentJobRoleId": "role-hodept-rc",
+            "jobRoles": [
+              {
+                "id": "role-hodept-rc",
+                "name": "Head of Department Regulatory Compliance",
+                "type": "Head of Department",
+                "departmentId": "dept-rc",
+                "supervisor": "Head of Division Compliance & Legal",
+                "jd": {
+                  "description": "",
+                  "objectives": [],
+                  "authorities": {
+                    "granted": [],
+                    "limitations": []
+                  },
+                  "responsibilities": [],
+                  "kpi": [],
+                  "ksao": {
+                    "knowledge": [],
+                    "skill": [],
+                    "ability": [],
+                    "other": []
+                  },
+                  "requirements": {
+                    "pendidikan": "",
+                    "pengalaman": [],
+                    "teknis": [],
+                    "nonTeknis": []
+                  },
+                  "risks": [],
+                  "regulations": [],
+                  "leadership": [],
+                  "assessments": [],
+                  "communication": [],
+                  "candidateCompetencies": []
+                }
+              },
+              {
+                "id": "role-ca",
+                "name": "Compliance Analyst",
+                "type": "Staff",
+                "departmentId": "dept-rc",
+                "supervisor": "Head of Department Regulatory Compliance",
+                "jd": {
+                  "description": "",
+                  "objectives": [],
+                  "authorities": {
+                    "granted": [],
+                    "limitations": []
+                  },
+                  "responsibilities": [],
+                  "kpi": [],
+                  "ksao": {
+                    "knowledge": [],
+                    "skill": [],
+                    "ability": [],
+                    "other": []
+                  },
+                  "requirements": {
+                    "pendidikan": "",
+                    "pengalaman": [],
+                    "teknis": [],
+                    "nonTeknis": []
+                  },
+                  "risks": [],
+                  "regulations": [],
+                  "leadership": [],
+                  "assessments": [],
+                  "communication": [],
+                  "candidateCompetencies": []
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dir-bd",
+    "name": "Business Development",
+    "divisions": [
+      {
+        "id": "div-sp",
+        "name": "Strategic Partnerships",
+        "directorateId": "dir-bd",
+        "headOfDivisionJobRoleId": "role-hod-sp",
+        "departments": [
+          {
+            "id": "dept-pdv",
+            "name": "Partnership Development",
+            "divisionId": "div-sp",
+            "headOfDepartmentJobRoleId": null,
+            "jobRoles": [
+              {
+                "id": "role-po",
+                "name": "Partnership Officer",
+                "type": "Staff",
+                "departmentId": "dept-pdv",
+                "supervisor": "Head of Department Partnership Development",
+                "jd": {
+                  "description": "",
+                  "objectives": [],
+                  "authorities": {
+                    "granted": [],
+                    "limitations": []
+                  },
+                  "responsibilities": [],
+                  "kpi": [],
+                  "ksao": {
+                    "knowledge": [],
+                    "skill": [],
+                    "ability": [],
+                    "other": []
+                  },
+                  "requirements": {
+                    "pendidikan": "",
+                    "pengalaman": [],
+                    "teknis": [],
+                    "nonTeknis": []
+                  },
+                  "risks": [],
+                  "regulations": [],
+                  "leadership": [],
+                  "assessments": [],
+                  "communication": [],
+                  "candidateCompetencies": []
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dir-td",
+    "name": "Technology & Digital",
+    "divisions": [
+      {
+        "id": "div-dp",
+        "name": "Digital Product",
+        "directorateId": "dir-td",
+        "headOfDivisionJobRoleId": null,
+        "departments": [
+          {
+            "id": "dept-pe",
+            "name": "Product Engineering",
+            "divisionId": "div-dp",
+            "headOfDepartmentJobRoleId": null,
+            "jobRoles": [
+              {
+                "id": "role-se",
+                "name": "Software Engineer",
+                "type": "Staff",
+                "departmentId": "dept-pe",
+                "supervisor": "Head of Department Product Engineering",
+                "jd": {
+                  "description": "",
+                  "objectives": [],
+                  "authorities": {
+                    "granted": [],
+                    "limitations": []
+                  },
+                  "responsibilities": [],
+                  "kpi": [],
+                  "ksao": {
+                    "knowledge": [],
+                    "skill": [],
+                    "ability": [],
+                    "other": []
+                  },
+                  "requirements": {
+                    "pendidikan": "",
+                    "pengalaman": [],
+                    "teknis": [],
+                    "nonTeknis": []
+                  },
+                  "risks": [],
+                  "regulations": [],
+                  "leadership": [],
+                  "assessments": [],
+                  "communication": [],
+                  "candidateCompetencies": []
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
