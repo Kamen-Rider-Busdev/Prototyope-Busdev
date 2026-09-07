@@ -48,6 +48,18 @@
           S.mobileNavOpen = false;
           if (key === 'job-description' || key === 'role-charter') {
             S.page = 'job-description';
+          } else if (key === 'governance-quality-manual') {
+            try{ if(window.App && window.App.seedDocsIfEmpty) window.App.seedDocsIfEmpty(); }catch(e){}
+            S.page = 'governance-quality-manual';
+            S.mmDetailId = null;
+          } else if (key === 'sop') {
+            try{ if(window.App && window.App.seedDocsIfEmpty) window.App.seedDocsIfEmpty(); }catch(e){}
+            S.page = 'sop';
+            S.sopDetailId = null;
+          } else if (key === 'technical-handbook') {
+            try{ if(window.App && window.App.seedDocsIfEmpty) window.App.seedDocsIfEmpty(); }catch(e){}
+            S.page = 'technical-handbook';
+            S.thbDetailId = null;
           } else if (key === 'open-branch') {
             S.page = 'open-branch';
           } else if (key === 'kuartal') {

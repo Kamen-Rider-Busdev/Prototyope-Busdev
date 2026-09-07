@@ -153,7 +153,24 @@
     holidayYear: 2026,
     holidayDivision: 'ALL',
     scheduleRosterSearch: '',
-    scheduleData: { attendance: [], leaveRequests: [], holidays: [], employeeRoster: [] }
+    scheduleData: { attendance: [], leaveRequests: [], holidays: [], employeeRoster: [] },
+    // ===== Dokumen: Manual Mutu / SOP / Technical Handbook (tanpa kolom link) =====
+    manuals: [],
+    sops: [],
+    handbooks: [],
+    mmSearch: '',
+    mmDirectorate: 'ALL',
+    mmDetailId: null,
+    sopSearch: '',
+    sopDirectorate: 'ALL',
+    sopDivision: 'ALL',
+    sopDepartment: 'ALL',
+    sopDetailId: null,
+    thbSearch: '',
+    thbDirectorate: 'ALL',
+    thbDivision: 'ALL',
+    thbDepartment: 'ALL',
+    thbDetailId: null
   };
 
   function findDirectorate(id){ return S.directorates.find(d=>d.id===id); }
@@ -218,7 +235,9 @@
     ICONS, escHtml, escAttr, getDeep, setDeep, uid, getCurrentDateTime,
     get SECTION_DEFS() { return SECTION_DEFS; }, get STANDARD_MONITORS() { return STANDARD_MONITORS; }, HOD_NAMES, emptyJD,
     createStandardMonitors, findDirectorate, findDivision, findDepartment,
-    findJobRole, headOfDivisionRole, jobRoleContext, getFilteredDir, countJobRoles
+    findJobRole, headOfDivisionRole, jobRoleContext, getFilteredDir, countJobRoles,
+    docDirectorateName, docDivisionName, docDepartmentName, docDivisions, docDepartments, docStatusBadge, sopFlowchartSVG, seedDocsIfEmpty,
+    ensureManualChapters, isChapterOpen, renderChapterToggleList
   };
 
   window.S = S;
@@ -239,6 +258,7 @@
     if (window.ActionKuartal) window.ActionKuartal.attach(root, S, render, window.App);
     if (window.ActionProjectManagement) window.ActionProjectManagement.attach(root, S, render, window.App);
     if (window.ActionSchedule) window.ActionSchedule.attach(root, S, render, window.App);
+    if (window.ActionDocs) window.ActionDocs.attach(root, S, render, window.App);
 
     if(focusId && document.getElementById(focusId)) {
       const el = document.getElementById(focusId);
@@ -304,6 +324,12 @@ function renderApp(){
         ${S.page==='project-management' ? renderProjectManagementPage() : ''}
         ${S.page==='schedule-management' ? renderScheduleManagementPage() : ''}
         ${S.page==='kuartal' ? renderKuartalPage() : ''}
+        ${S.page==='governance-quality-manual' ? renderManualMutuPage() : ''}
+        ${S.page==='governance-quality-manual-detail' ? renderManualMutuDetailPage() : ''}
+        ${S.page==='sop' ? renderSopPage() : ''}
+        ${S.page==='sop-detail' ? renderSopDetailPage() : ''}
+        ${S.page==='technical-handbook' ? renderHandbookPage() : ''}
+        ${S.page==='technical-handbook-detail' ? renderHandbookDetailPage() : ''}
         ${S.page==='placeholder' ? renderPlaceholderPage() : ''}
       </div>
     </div>
@@ -317,10 +343,10 @@ function renderSidebar(){
     {
       group: "Dasaria Workflow Playbook",
       items: [
-        { key: "governance-quality-manual", label: "Governance & Quality Manual", desc: "Kebijakan, prinsip, standar mutu", icon: "shield", real: false },
+        { key: "governance-quality-manual", label: "Governance & Quality Manual", desc: "Kebijakan, prinsip, standar mutu", icon: "shield", real: true },
         { key: "job-description", label: "Role Charter / Job Description", desc: "Tanggung jawab dan kewenangan", icon: "building", real: true },
-        { key: "sop", label: "SOP", desc: "Alur proses kerja", icon: "fileText", real: false },
-        { key: "technical-handbook", label: "Technical Handbook", desc: "Metode teknis dan cara penerapan", icon: "book", real: false },
+        { key: "sop", label: "SOP", desc: "Alur proses kerja", icon: "fileText", real: true },
+        { key: "technical-handbook", label: "Technical Handbook", desc: "Metode teknis dan cara penerapan", icon: "book", real: true },
         { key: "knowledge-base", label: "Knowledge Base", desc: "Materi keilmuan, konsep, teori, referensi", icon: "search", real: false },
         { key: "forms-records", label: "Forms & Records", desc: "Bukti pelaksanaan", icon: "edit", real: false }
       ]
@@ -354,6 +380,9 @@ function renderSidebar(){
   
   const isActive = k => {
     if(S.page.startsWith('job-description')) return k === 'job-description' || k === 'role-charter';
+    if(S.page.startsWith('governance-quality-manual')) return k === 'governance-quality-manual';
+    if(S.page.startsWith('sop')) return k === 'sop';
+    if(S.page.startsWith('technical-handbook')) return k === 'technical-handbook';
     if(S.page.startsWith('open-branch')) return k === 'open-branch';
     if(S.page === 'project-management') return k === 'project-management';
     if(S.page === 'schedule-management') return k === 'schedule-management';
@@ -398,6 +427,12 @@ function renderHeader(){
   const titleMap = {
     "job-description":"Role Charter / Job Description",
     "job-description-detail":"Role Charter / Job Description",
+    "governance-quality-manual":"Governance & Quality Manual",
+    "governance-quality-manual-detail":"Governance & Quality Manual",
+    "sop":"SOP",
+    "sop-detail":"SOP",
+    "technical-handbook":"Technical Handbook",
+    "technical-handbook-detail":"Technical Handbook",
     "open-branch":"Open Branch",
     "open-branch-detail":"Open Branch",
     "open-branch-monitor":"Open Branch",
@@ -3850,6 +3885,104 @@ function repeatableListEditor(pathBase, items, addLabel){
 function renderModal(){
   const m = S.modal;
 
+  // ===== Dokumen: Manual / SOP / Handbook (tanpa kolom link) =====
+  if(m.kind==='addManual' || m.kind==='editManual'){
+    const isEdit=m.kind==='editManual';
+    const d=isEdit ? (S.manuals||[]).find(x=>x.id===m.id) : {code:'MM-'+Math.floor(100+Math.random()*900), name:'', directorateId:(S.directorates[0]||{}).id||'ALL', version:'v1.0', status:'Draft', purpose:'', scope:'', content:''};
+    const dirs=S.directorates||[];
+    return modalShell(isEdit?'Ubah Dokumen Manual Mutu':'Tambah Dokumen Manual Mutu', `
+      <div class="modal-context">Dokumen dibuat dan dikelola di web ini. <b>Tidak ada kolom link.</b></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>Nama Dokumen*</label><input class="modal-inp" id="doc-mm-name" value="${escAttr(d.name)}" placeholder="mis. Manual Mutu Open Branch"></div>
+        <div class="field"><label>Kode*</label><input class="modal-inp" id="doc-mm-code" value="${escAttr(d.code)}"></div>
+        <div class="field"><label>Direktorat*</label><select id="doc-mm-dir" class="modal-inp">${dirs.map(x=>`<option value="${escAttr(x.id)}" ${d.directorateId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status</label><select id="doc-mm-status" class="modal-inp"><option ${d.status==='Draft'?'selected':''}>Draft</option><option ${d.status==='Review'?'selected':''}>Review</option><option ${d.status==='Berlaku'?'selected':''}>Berlaku</option><option ${d.status==='Obsolete'?'selected':''}>Obsolete</option></select></div>
+        <div class="field"><label>Versi</label><input class="modal-inp" id="doc-mm-version" value="${escAttr(d.version||'v1.0')}"></div>
+        <div class="field"><label>Update Terakhir</label><input class="modal-inp" id="doc-mm-updated" value="${escAttr(d.updated||'')}" placeholder="mis. 01 Sep 2026"></div>
+        <div class="field" style="grid-column:1/-1;"><label>Tujuan</label><textarea id="doc-mm-purpose" style="min-height:60px;">${escHtml(d.purpose||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Ruang Lingkup</label><textarea id="doc-mm-scope" style="min-height:60px;">${escHtml(d.scope||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Isi Dokumen</label><textarea id="doc-mm-content" style="min-height:120px;">${escHtml(d.content||'')}</textarea></div>
+      </div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-manual="${isEdit?m.id:''}">Simpan</button>`, true);
+  }
+  if(m.kind==='deleteManual'){
+    const d=(S.manuals||[]).find(x=>x.id===m.id);
+    return modalShell('Hapus Dokumen?', `<p style="font-size:14px;margin:0;">Hapus <b>${escHtml(d?d.name:'')}</b> (${escHtml(d?d.code:'')}) secara permanen?</p><div class="delete-warning">Dokumen yang sudah Berlaku sebaiknya dijadikan Obsolete, bukan dihapus.</div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-manual="${m.id}">${ICONS.trash} Hapus</button>`);
+  }
+  if(m.kind==='addSop' || m.kind==='editSop'){
+    const isEdit=m.kind==='editSop';
+    const d=isEdit ? (S.sops||[]).find(x=>x.id===m.id) : {code:'SOP-'+Math.floor(100+Math.random()*900), name:'', directorateId:(S.directorates[0]||{}).id||'ALL', divisionId:'', departmentId:'', version:'v1.0', status:'Draft', pic:'', purpose:'', scope:'', reference:'', definitions:'', detailProses:'', communication:'', steps:''};
+    const dirs=S.directorates||[];
+    let divs=docDivisions(d.directorateId);
+    let deps=d.divisionId ? docDepartments(d.divisionId) : [];
+    return modalShell(isEdit?'Ubah SOP':'Buat SOP Baru', `
+      <div class="modal-context">Isi info dasar dulu. Untuk menggambar flowchart gunakan <b>Edit di draw.io</b> dari daftar. Hasilnya tersimpan sebagai <b>gambar embed</b> di web, bukan link. Isi dokumen mengikuti urutan: Penjelasan Umum > Detail Proses > Proses Komunikasi.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>Nama SOP*</label><input class="modal-inp" id="doc-sop-name" value="${escAttr(d.name)}" placeholder="mis. SOP Survey Lokasi POP ODC"></div>
+        <div class="field"><label>Kode*</label><input class="modal-inp" id="doc-sop-code" value="${escAttr(d.code)}"></div>
+        <div class="field"><label>Direktorat*</label><select id="doc-sop-dir" class="modal-inp">${dirs.map(x=>`<option value="${escAttr(x.id)}" ${d.directorateId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Divisi</label><select id="doc-sop-div" class="modal-inp"><option value="">-- Pilih --</option>${divs.map(x=>`<option value="${escAttr(x.id)}" ${d.divisionId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Departemen</label><select id="doc-sop-dept" class="modal-inp"><option value="">-- Pilih --</option>${deps.map(x=>`<option value="${escAttr(x.id)}" ${d.departmentId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>PIC Pelaksana</label><input class="modal-inp" id="doc-sop-pic" value="${escAttr(d.pic||'')}" placeholder="mis. Surveyor"></div>
+        <div class="field"><label>Versi</label><input class="modal-inp" id="doc-sop-version" value="${escAttr(d.version||'v1.0')}"></div>
+        <div class="field"><label>Status</label><select id="doc-sop-status" class="modal-inp"><option ${d.status==='Draft'?'selected':''}>Draft</option><option ${d.status==='Review'?'selected':''}>Review</option><option ${d.status==='Berlaku'?'selected':''}>Berlaku</option><option ${d.status==='Obsolete'?'selected':''}>Obsolete</option></select></div>
+        <div class="field" style="grid-column:1/-1;"><label>Maksud dan Tujuan</label><textarea id="doc-sop-purpose" style="min-height:60px;">${escHtml(d.purpose||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Ruang Lingkup</label><textarea id="doc-sop-scope" style="min-height:60px;">${escHtml(d.scope||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Referensi</label><textarea id="doc-sop-reference" style="min-height:60px;">${escHtml(d.reference||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Definisi Istilah</label><textarea id="doc-sop-definitions" style="min-height:60px;">${escHtml(d.definitions||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Detail Proses</label><textarea id="doc-sop-detailproses" style="min-height:100px;">${escHtml(d.detailProses||d.steps||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Proses Komunikasi</label><textarea id="doc-sop-communication" style="min-height:80px;">${escHtml(d.communication||'')}</textarea></div>
+      </div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-sop="${isEdit?m.id:''}">Simpan</button>`, true);
+  }
+  if(m.kind==='deleteSop'){
+    const d=(S.sops||[]).find(x=>x.id===m.id);
+    return modalShell('Hapus SOP?', `<div style="display:flex;gap:12px;align-items:center;"><img src="${d&&d.preview?d.preview:sopFlowchartSVG(d?d.code:'',d?d.name:'')}" style="width:120px;height:70px;object-fit:cover;border:1px solid var(--border);border-radius:6px;background:#fff;"><p style="font-size:14px;margin:0;">Hapus <b>${escHtml(d?d.name:'')}</b> (${escHtml(d?d.code:'')})? Flowchart ikut terhapus.</p></div><div class="delete-warning">SOP Berlaku sebaiknya Diarsipkan (Obsolete), bukan dihapus.</div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-sop="${m.id}">${ICONS.trash} Hapus</button>`);
+  }
+  if(m.kind==='addHandbook' || m.kind==='editHandbook'){
+    const isEdit=m.kind==='editHandbook';
+    const d=isEdit ? (S.handbooks||[]).find(x=>x.id===m.id) : {code:'THB-'+Math.floor(100+Math.random()*900), name:'', category:'Fiber Optik', directorateId:(S.directorates[0]||{}).id||'ALL', divisionId:'', departmentId:'', version:'v1.0', status:'Berlaku', summary:'', tools:'', spec:'', steps:''};
+    const dirs=S.directorates||[];
+    let divs=docDivisions(d.directorateId);
+    let deps=d.divisionId ? docDepartments(d.divisionId) : [];
+    return modalShell(isEdit?'Ubah Handbook':'Tambah Handbook', `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>Judul Handbook*</label><input class="modal-inp" id="doc-thb-name" value="${escAttr(d.name)}" placeholder="mis. Cara Uji Loss dengan OTDR"></div>
+        <div class="field"><label>Kode*</label><input class="modal-inp" id="doc-thb-code" value="${escAttr(d.code)}"></div>
+        <div class="field"><label>Kategori</label><select id="doc-thb-cat" class="modal-inp">${['Fiber Optik','ODC','Tiang','Survey','Route','Fasum','Safety','Alat Ukur'].map(c=>`<option ${d.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="field"><label>Versi</label><input class="modal-inp" id="doc-thb-version" value="${escAttr(d.version||'v1.0')}"></div>
+        <div class="field"><label>Direktorat*</label><select id="doc-thb-dir" class="modal-inp">${dirs.map(x=>`<option value="${escAttr(x.id)}" ${d.directorateId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Divisi</label><select id="doc-thb-div" class="modal-inp"><option value="">-- Pilih --</option>${divs.map(x=>`<option value="${escAttr(x.id)}" ${d.divisionId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Departemen</label><select id="doc-thb-dept" class="modal-inp"><option value="">-- Pilih --</option>${deps.map(x=>`<option value="${escAttr(x.id)}" ${d.departmentId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status</label><select id="doc-thb-status" class="modal-inp"><option ${d.status==='Draft'?'selected':''}>Draft</option><option ${d.status==='Review'?'selected':''}>Review</option><option ${d.status==='Berlaku'?'selected':''}>Berlaku</option><option ${d.status==='Obsolete'?'selected':''}>Obsolete</option></select></div>
+        <div class="field" style="grid-column:1/-1;"><label>Ringkasan</label><textarea id="doc-thb-summary" style="min-height:60px;">${escHtml(d.summary||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Alat & Bahan</label><textarea id="doc-thb-tools" style="min-height:60px;">${escHtml(d.tools||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Spesifikasi</label><textarea id="doc-thb-spec" style="min-height:60px;">${escHtml(d.spec||'')}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>Langkah Kerja</label><textarea id="doc-thb-steps" style="min-height:100px;">${escHtml(d.steps||'')}</textarea></div>
+      </div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-handbook="${isEdit?m.id:''}">Simpan</button>`, true);
+  }
+  if(m.kind==='deleteHandbook'){
+    const d=(S.handbooks||[]).find(x=>x.id===m.id);
+    return modalShell('Hapus Handbook?', `<p style="font-size:14px;margin:0;">Hapus <b>${escHtml(d?d.name:'')}</b> (${escHtml(d?d.code:'')}) secara permanen?</p>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-handbook="${m.id}">${ICONS.trash} Hapus</button>`);
+  }
+  if(m.kind==='addChapter' || m.kind==='editChapter'){
+    const isEdit=m.kind==='editChapter';
+    var doc=null;
+    if(m.docType==='manual') doc=(S.manuals||[]).find(function(x){return x.id===m.docId;});
+    else if(m.docType==='sop') doc=(S.sops||[]).find(function(x){return x.id===m.docId;});
+    else doc=(S.handbooks||[]).find(function(x){return x.id===m.docId;});
+    var ch=isEdit && doc ? (doc.chapters||[]).find(function(c){return c.id===m.chapId;}) : {title:'', content:''};
+    var lockedFormat=(m.docType==='sop' || m.docType==='handbook');
+    var isPendahuluan=isEdit && ((ch.title||'').toLowerCase()==='pendahuluan');
+    var lockTitle=isPendahuluan || (isEdit && lockedFormat);
+    return modalShell(isEdit?(lockedFormat?'Ubah Isi Bab':'Ubah Bab'):'Tambah Bab', `
+      <div class="modal-context">Dokumen: <b>${escHtml(doc?doc.name:'')}</b>${lockTitle?'<br>Judul bab dikunci (format pasti). Isi boleh diubah.':(isPendahuluan?'<br>Bab <b>Pendahuluan</b> wajib ada. Judul dikunci, isi boleh diubah.':'')}</div>
+      <div class="field"><label>Judul Bab*</label><input class="modal-inp" id="doc-chap-title" value="${escAttr(ch.title||'')}" ${lockTitle?'disabled':''} placeholder="mis. Ruang Lingkup, Detail Proses"></div>
+      <div class="field"><label>Isi Bab*</label><textarea id="doc-chap-content" style="min-height:140px;">${escHtml(ch.content||'')}</textarea></div>
+    `, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-chapter="${m.docType}:${m.docId}:${isEdit?m.chapId:''}">Simpan Bab</button>`);
+  }
+  if(m.kind==='deleteChapter'){
+    return modalShell('Hapus Bab?', `<p style="font-size:14px;margin:0;">Hapus bab <b>${escHtml(m.chapTitle||'')}</b>? Bab Pendahuluan tidak bisa dihapus.</p>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-chapter="${m.docType}:${m.docId}:${m.chapId}">${ICONS.trash} Hapus</button>`);
+  }
+
   if (m.kind === 'editFasum' || m.kind === 'addFasum') {
     const isEdit = m.kind === 'editFasum';
     const b = S.branches.find(x => x.id === S.activeBranchId);
@@ -5146,6 +5279,494 @@ function renderModal(){
   return '';
 }
 
+/* ======================= DOKUMEN: MANUAL MUTU / SOP / HANDBOOK =======================
+   Prinsip: list nama dokumen + CRUD, tanpa kolom link.
+   - Manual Mutu: filter Direktorat saja
+   - SOP: filter Direktorat > Divisi > Departemen, Edit -> draw.io, View -> gambar embed
+   - Handbook: filter Direktorat > Divisi > Departemen
+============================================================================ */
+
+function docDirectorateName(id){
+  if(!id || id==='ALL') return '-';
+  const d = (S.directorates||[]).find(x=>x.id===id);
+  return d ? d.name : '-';
+}
+function docDivisionName(id){
+  if(!id) return '-';
+  const v = findDivision(id);
+  return v ? v.name : '-';
+}
+function docDepartmentName(id){
+  if(!id) return '-';
+  const dep = findDepartment(id);
+  return dep ? dep.name : '-';
+}
+function docDivisions(dirId){
+  if(!dirId || dirId==='ALL'){
+    const all=[];
+    (S.directorates||[]).forEach(d=>(d.divisions||[]).forEach(v=>all.push(Object.assign({directorateId:d.id},v))));
+    return all;
+  }
+  const d=(S.directorates||[]).find(x=>x.id===dirId);
+  return d ? (d.divisions||[]).map(v=>Object.assign({directorateId:d.id},v)) : [];
+}
+function docDepartments(divId){
+  if(!divId || divId==='ALL') return [];
+  const v=findDivision(divId);
+  return v ? (v.departments||[]) : [];
+}
+function docStatusBadge(st){
+  if(st==='Berlaku' || st==='Release') return '<span class="badge badge-lifecycle-release">Berlaku</span>';
+  if(st==='Review' || st==='Pra-Release') return '<span class="badge badge-lifecycle-pra-release">Review</span>';
+  if(st==='Obsolete' || st==='Arsip') return '<span class="badge badge-nonaktif">Obsolete</span>';
+  return '<span class="badge badge-lifecycle-draft">Draft</span>';
+}
+function sopFlowchartSVG(code, name){
+  const t1=(code||'SOP').substring(0,14);
+  const t2=(name||'Flowchart').substring(0,26);
+  const svg="<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360'>"
+    +"<rect width='640' height='360' fill='#F1F4F9'/>"
+    +"<rect x='250' y='18' width='140' height='44' rx='22' fill='#2C4870'/><text x='320' y='45' font-family='sans-serif' font-size='15' font-weight='700' fill='#fff' text-anchor='middle'>START</text>"
+    +"<line x1='320' y1='62' x2='320' y2='92' stroke='#2C4870' stroke-width='2' marker-end='url(#a)'/>"
+    +"<rect x='210' y='92' width='220' height='52' rx='8' fill='#fff' stroke='#2C4870' stroke-width='2'/><text x='320' y='113' font-family='sans-serif' font-size='13' font-weight='600' fill='#1B2434' text-anchor='middle'>"+t1+"</text><text x='320' y='130' font-family='sans-serif' font-size='11' fill='#5B6472' text-anchor='middle'>"+t2+"</text>"
+    +"<line x1='320' y1='144' x2='320' y2='172' stroke='#2C4870' stroke-width='2'/>"
+    +"<polygon points='320,172 390,212 320,252 250,212' fill='#F6EDE1' stroke='#A9793F' stroke-width='2'/><text x='320' y='208' font-family='sans-serif' font-size='12' font-weight='700' fill='#7A5A2E' text-anchor='middle'>QC Lolos?</text>"
+    +"<text x='398' y='195' font-family='sans-serif' font-size='11' fill='#3E7A54'>Ya</text><text x='228' y='195' font-family='sans-serif' font-size='11' fill='#B4432F'>Tidak</text>"
+    +"<rect x='430' y='186' width='150' height='52' rx='8' fill='#E9F4EC' stroke='#3E7A54' stroke-width='2'/><text x='505' y='208' font-family='sans-serif' font-size='12' font-weight='700' fill='#2E5A3E' text-anchor='middle'>Selesai</text><text x='505' y='224' font-family='sans-serif' font-size='10' fill='#5B6472' text-anchor='middle'>END</text>"
+    +"<rect x='60' y='186' width='150' height='52' rx='8' fill='#FBEAE6' stroke='#B4432F' stroke-width='2'/><text x='135' y='208' font-family='sans-serif' font-size='12' font-weight='700' fill='#7A2E1F' text-anchor='middle'>Perbaiki</text><text x='135' y='224' font-family='sans-serif' font-size='10' fill='#5B6472' text-anchor='middle'>Ulangi</text>"
+    +"<defs><marker id='a' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 z' fill='#2C4870'/></marker></defs></svg>";
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+function seedDocsIfEmpty(){
+  if(!S.docOpen) S.docOpen={};
+  const dirs=S.directorates||[];
+  const d0=dirs[0] ? dirs[0].id : 'dir-pcc';
+  const d1=dirs[1] ? dirs[1].id : d0;
+  const d2=dirs[2] ? dirs[2].id : d0;
+  const divs0=docDivisions(d0);
+  const v0=divs0[0] ? divs0[0].id : null;
+  const dep0=v0 ? (docDepartments(v0)[0] ? docDepartments(v0)[0].id : null) : null;
+  const divs1=docDivisions(d1);
+  const v1=divs1[0] ? divs1[0].id : v0;
+  const dep1=v1 ? (docDepartments(v1)[0] ? docDepartments(v1)[0].id : dep0) : dep0;
+  function mkChap(title, content){ return {id:'bab-'+uid(), title:title, content:content||''}; }
+  if(!S.manuals || !S.manuals.length){
+    S.manuals=[
+      {id:'mm-001', code:'MM-001', name:'Manual Mutu Induk Perusahaan', directorateId:d0, version:'v3.0', status:'Berlaku', updated:'01 Agu 2026', updatedBy:'Direksi', purpose:'Menetapkan kebijakan mutu perusahaan sebagai payung seluruh SOP.', scope:'Berlaku untuk seluruh direktorat.', content:'Bab 1 Pendahuluan.\nBab 2 Konteks organisasi.\nBab 3 Kepemimpinan.\nBab 4 Perencanaan mutu.\nBab 5 Dukungan.\nBab 6 Operasi.\nBab 7 Evaluasi.\nBab 8 Perbaikan.',
+        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Manual ini menetapkan kebijakan mutu perusahaan sebagai payung seluruh SOP.\nBerlaku untuk seluruh direktorat.'},{id:'bab-'+'konteks', title:'Konteks Organisasi', content:'Profil perusahaan, peta proses, dan stakeholder.'},{id:'bab-'+'operasi', title:'Operasi', content:'Tahapan baku operasional dan kriteria lolos tiap tahap.'}]},
+      {id:'mm-002', code:'MM-002', name:'Manual Mutu Open Branch', directorateId:d1, version:'v2.1', status:'Berlaku', updated:'28 Jul 2026', updatedBy:'BQG', purpose:'Mengatur standar pembukaan cabang baru tepat waktu dan lolos QC.', scope:'Mencakup survei lokasi, permit, pembangunan POP ODC, QC, aktivasi.', content:'Fokus pada siklus Open Branch: opsi lokasi, survei, permit, plan area, pembangunan, QC, serah terima.',
+        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Mengatur standar pembukaan cabang baru tepat waktu dan lolos QC.\nMencakup survei lokasi, permit, pembangunan POP ODC, QC, aktivasi.'},{id:'bab-siklus', title:'Siklus Open Branch', content:'Opsi lokasi -> survei -> permit -> plan area -> pembangunan -> QC -> serah terima.'}]},
+      {id:'mm-003', code:'MM-003', name:'Kebijakan Pengendalian Dokumen', directorateId:d0, version:'v1.0', status:'Draft', updated:'Kemarin', updatedBy:'QA', purpose:'Mengatur versi, pengesahan, dan masa berlaku dokumen.', scope:'Berlaku untuk Manual, SOP, dan Handbook.', content:'Draft awal: kode dokumen, versi, pengesahan QA-Head-Direksi, aturan obsolete.',
+        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Mengatur versi, pengesahan, dan masa berlaku dokumen.\nBerlaku untuk Manual, SOP, dan Handbook.'}]}
+    ];
+  } else {
+    (S.manuals||[]).forEach(function(m){
+      if(!m.chapters || !m.chapters.length){
+        var pend=''+(m.purpose||'')+(m.scope?'\n'+m.scope:'');
+        m.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:pend||'-'}];
+        if(m.content) m.chapters.push({id:'bab-'+uid(), title:'Isi Dokumen', content:m.content});
+      } else {
+        if(!m.chapters.some(function(c){return (c.title||'').toLowerCase()==='pendahuluan';})){
+          m.chapters.unshift({id:'bab-pendahuluan', title:'Pendahuluan', content:'-'});
+        }
+      }
+    });
+  }
+  if(!S.sops || !S.sops.length){
+    S.sops=[
+      {id:'sop-014', code:'SOP-014', name:'SOP Survey Lokasi POP ODC', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.3', status:'Berlaku', updated:'28 Jul 2026', updatedBy:'Dimas', pic:'Surveyor', purpose:'Memastikan lokasi ODC valid dan bisa dibangun.', scope:'Berlaku untuk seluruh opsi lokasi POP ODC baru.', reference:'MM-002 Manual Mutu Open Branch Bab 6. THB-001 Cara Foto Survey.', definitions:'POP: Point of Presence. ODC: Optical Distribution Cabinet. QC: Quality Control.', detailProses:'1. Siapkan checklist dan koordinat opsi.\n2. Kunjungi lokasi, foto 6 sisi + GPS lock.\n3. Nilai 5 syarat (pengawasan, akses mobil, teduh, tidak banjir, izin warga). Min 4 lolos.\n4. Ajukan rekomendasi Direkomendasikan / Pertimbangkan / Tolak ke Head.', communication:'Surveyor -> Admin Dokumen: kirim foto + GPS maks H+1.\nAdmin -> Head BQG: rekap skor untuk review.\nHead -> Surveyor: umpan balik Tolak = cari opsi baru.', steps:'1. Siapkan checklist\n2. Foto lokasi + GPS\n3. Nilai 5 syarat\n4. Ajukan rekomendasi', drawioUrl:'', preview:sopFlowchartSVG('SOP-014','Survey POP ODC')},
+      {id:'sop-015', code:'SOP-015', name:'SOP Permit RT/RW', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.0', status:'Review', updated:'20 Agu 2026', updatedBy:'QA', pic:'Admin Permit', purpose:'Mengatur alur perizinan proposal sampai BAK.', scope:'Mencakup permit ODC dan tiang di tingkat RT/RW/Desa.', reference:'MM-002 Bab 6. SOP-014.', definitions:'BAK: Berita Acara Kesepakatan. Proposal: penawaran kompensasi.', detailProses:'1. Ajukan proposal ke RT/RW.\n2. Negosiasi kompensasi sesuai standar.\n3. Tanda tangan BAK dan arsipkan.', communication:'Admin Permit -> Ketua RT/RW: proposal.\nKetua RT/RW -> Admin: persetujuan / revisi.\nAdmin -> Head: laporan status mingguan.', steps:'1. Ajukan proposal\n2. Negosiasi kompensasi\n3. Tanda tangan BAK', drawioUrl:'', preview:sopFlowchartSVG('SOP-015','Permit RT/RW')},
+      {id:'sop-016', code:'SOP-016', name:'SOP Pemasangan Tiang', directorateId:d2, divisionId:(docDivisions(d2)[0]||{id:v0}).id, departmentId:dep0, version:'v2.0', status:'Berlaku', updated:'01 Sep 2026', updatedBy:'Rizky', pic:'Teknisi', purpose:'Standar galian, tanam, dan QC vertikalitas tiang.', scope:'Tiang beton 9m dan besi 7m untuk route area.', reference:'THB-004 Cara Tanam Tiang 9m.', definitions:'Vertikalitas: kemiringan maksimal 1 derajat.', detailProses:'1. Galian 1/6 tinggi tiang.\n2. Tanam + urugan batu+semen, padatkan.\n3. Uji vertikalitas dengan waterpass + foto bukti.', communication:'Teknisi -> QC: lapor siap uji.\nQC -> Teknisi: Lolos / Revisi / Bongkar.\nQC -> Admin: input hasil ke monitoring.', steps:'1. Galian 1/6 tinggi\n2. Tanam + urugan\n3. Uji vertikalitas', drawioUrl:'', preview:sopFlowchartSVG('SOP-016','Pemasangan Tiang')}
+    ];
+  } else {
+    // migrasi data lama agar punya struktur isi baru tanpa menghapus data user
+    (S.sops||[]).forEach(function(s){
+      if(s.scope===undefined) s.scope='';
+      if(s.reference===undefined) s.reference='';
+      if(s.definitions===undefined) s.definitions='';
+      if(s.detailProses===undefined) s.detailProses=s.steps||'';
+      if(s.communication===undefined) s.communication='';
+      if(!s.chapters || !s.chapters.length){
+        s.chapters=[
+          {id:'bab-penjelasan', title:'Penjelasan Umum', content:'Maksud dan Tujuan:\n'+(s.purpose||'-')+'\n\nRuang Lingkup:\n'+(s.scope||'-')+'\n\nReferensi:\n'+(s.reference||'-')+'\n\nDefinisi Istilah:\n'+(s.definitions||'-')},
+          {id:'bab-detail', title:'Detail Proses', content:s.detailProses||s.steps||'-'},
+          {id:'bab-komunikasi', title:'Proses Komunikasi', content:s.communication||'-'}
+        ];
+      }
+    });
+  }
+  if(!S.handbooks || !S.handbooks.length){
+    S.handbooks=[
+      {id:'thb-002', code:'THB-002', name:'Cara Uji Loss dengan OTDR', category:'Fiber Optik', directorateId:d2, divisionId:(docDivisions(d2)[0]||{id:v0}).id, departmentId:dep0, version:'v1.2', status:'Berlaku', updated:'12 Agu 2026', updatedBy:'Andi', summary:'Splice loss maksimal 0,2 dB, ideal di bawah 0,1 dB.', tools:'OTDR terkalibrasi, patchcord reference, tisu alkohol.', spec:'Loss per splice <= 0,2 dB. Tekukan > 30mm.', steps:'1. Bersihkan konektor\n2. Pasang reference\n3. Test 1310/1550\n4. Baca event tertinggi\n5. Simpan OTB-Tube-Core-tanggal',
+        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Splice loss maksimal 0,2 dB, ideal di bawah 0,1 dB.'},{id:'bab-alat', title:'Alat dan Bahan', content:'OTDR terkalibrasi, patchcord reference, tisu alkohol.'},{id:'bab-langkah', title:'Langkah Kerja', content:'1. Bersihkan konektor\n2. Pasang reference\n3. Test 1310/1550\n4. Baca event tertinggi\n5. Simpan OTB-Tube-Core-tanggal'}]},
+      {id:'thb-004', code:'THB-004', name:'Cara Tanam Tiang 9m', category:'Tiang', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.0', status:'Draft', updated:'01 Sep 2026', updatedBy:'Rizky', summary:'Galian 1/6 tinggi tiang, urugan batu+semen untuk tanah lempung.', tools:'Cangkul, waterpass, semen, batu.', spec:'Kedalaman ~1,5m untuk 9m. Toleransi miring < 1 derajat.', steps:'1. Gali\n2. Tanam\n3. Urugan padat\n4. Foto vertikalitas',
+        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Galian 1/6 tinggi tiang, urugan batu+semen untuk tanah lempung.'},{id:'bab-langkah', title:'Langkah Kerja', content:'1. Gali\n2. Tanam\n3. Urugan padat\n4. Foto vertikalitas'}]},
+      {id:'thb-001', code:'THB-001', name:'Cara Foto Survey', category:'Survey', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v2.0', status:'Berlaku', updated:'05 Agu 2026', updatedBy:'Dimas', summary:'6 foto wajib: depan, akses, banjir, listrik, pengawasan, patok GPS.', tools:'HP GPS aktif, meteran.', spec:'Foto jelas, GPS lock, angle lebar.', steps:'1. Foto tampak depan\n2. Foto akses jalan\n3. Foto risiko banjir\n4. Catat koordinat',
+        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'6 foto wajib: depan, akses, banjir, listrik, pengawasan, patok GPS.'},{id:'bab-langkah', title:'Langkah Kerja', content:'1. Foto tampak depan\n2. Foto akses jalan\n3. Foto risiko banjir\n4. Catat koordinat'}]}
+    ];
+  } else {
+    (S.handbooks||[]).forEach(function(h){
+      if(!h.chapters || !h.chapters.length){
+        h.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:h.summary||'-'}];
+        if(h.tools) h.chapters.push({id:'bab-'+uid(), title:'Alat dan Bahan', content:h.tools});
+        if(h.spec) h.chapters.push({id:'bab-'+uid(), title:'Spesifikasi', content:h.spec});
+        if(h.steps) h.chapters.push({id:'bab-'+uid(), title:'Langkah Kerja', content:h.steps});
+      } else {
+        if(!h.chapters.some(function(c){return (c.title||'').toLowerCase()==='pendahuluan';})){
+          h.chapters.unshift({id:'bab-pendahuluan', title:'Pendahuluan', content:h.summary||'-'});
+        }
+      }
+    });
+  }
+}
+
+function ensureManualChapters(m){
+  if(!m.chapters || !m.chapters.length){
+    var pend=''+(m.purpose||'')+(m.scope?'\n'+m.scope:'');
+    m.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:pend||'-'}];
+    if(m.content) m.chapters.push({id:'bab-'+uid(), title:'Isi Dokumen', content:m.content});
+  }
+  return m.chapters;
+}
+function isChapterOpen(docId, chapId, defaultOpen){
+  if(!S.docOpen) S.docOpen={};
+  var key=docId+':'+chapId;
+  if(!(key in S.docOpen)) return !!defaultOpen;
+  return !!S.docOpen[key];
+}
+function renderChapterToggleList(docType, docId, chapters){
+  if(!chapters || !chapters.length) return '<div class="empty-state"><p>Belum ada bab. Klik Tambah Bab.</p></div>';
+  var lockedFormat=(docType==='sop' || docType==='handbook');
+  return '<div class="pillar-accordion">'+chapters.map(function(ch, idx){
+    var open=isChapterOpen(docId, ch.id, idx===0);
+    var isPendahuluan=(ch.title||'').toLowerCase()==='pendahuluan';
+    var hideDelete=lockedFormat || isPendahuluan;
+    return `
+    <div class="pillar">
+      <button class="pillar-head" data-toggle-chapter="${docType}:${docId}:${ch.id}" style="gap:10px;">
+        <span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;">
+          <span class="n" style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">${String(idx+1).padStart(2,'0')}</span>
+          <span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(ch.title||('Bab '+(idx+1)))}</span>
+        </span>
+        <span style="display:flex;align-items:center;gap:4px;flex-shrink:0;" onclick="event.stopPropagation();">
+          <span class="btn-ghost btn-sm" style="padding:4px 6px;" data-edit-chapter="${docType}:${docId}:${ch.id}" title="${lockedFormat?'Ubah isi bab':'Ubah bab'}">${ICONS.edit}</span>
+          ${hideDelete?'':`<span class="btn-ghost btn-sm" style="padding:4px 6px;color:var(--danger);" data-delete-chapter="${docType}:${docId}:${ch.id}" title="Hapus bab">${ICONS.trash}</span>`}
+          <span style="color:var(--ink-faint);display:inline-flex;">${open?ICONS.chevronDown:ICONS.chevron}</span>
+        </span>
+      </button>
+      ${open?`<div class="pillar-body"><div class="narrative"><p style="white-space:pre-line;margin:0;">${escHtml(ch.content||'-')}</p></div></div>`:''}
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function renderManualMutuPage(){
+  seedDocsIfEmpty();
+  const q=(S.mmSearch||'').toLowerCase().trim();
+  const dirF=S.mmDirectorate||'ALL';
+  const dirs=S.directorates||[];
+  const filtered=(S.manuals||[]).filter(m=>{
+    if(dirF!=='ALL' && m.directorateId!==dirF) return false;
+    if(q){
+      const hay=((m.name||'')+' '+(m.code||'')+' '+(m.purpose||'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  return `
+  <div class="page-head" style="margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Governance & Quality Manual</h1>
+      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Kebijakan, prinsip, standar mutu &bull; ${filtered.length} dokumen</p>
+    </div>
+    <button class="btn btn-primary" data-add-manual="1">+ Tambah Dokumen</button>
+  </div>
+  <div class="pm-toolbar" style="margin-bottom:16px;">
+    <div class="pm-filters">
+      <div class="search-box pm-search" style="min-width:260px;">
+        <input type="text" id="mm-search-input" placeholder="Cari nama / kode dokumen..." value="${escAttr(S.mmSearch||'')}">
+      </div>
+      <select id="mm-filter-directorate" class="modal-inp" style="width:auto;padding:7px 12px;font-size:13px;">
+        <option value="ALL" ${dirF==='ALL'?'selected':''}>Semua Direktorat</option>
+        ${dirs.map(d=>`<option value="${escAttr(d.id)}" ${dirF===d.id?'selected':''}>${escHtml(d.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.manuals||[]).length} dokumen</div>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;">
+      <thead><tr>
+        <th style="width:45px;text-align:center;">No</th>
+        <th>Nama Dokumen</th>
+        <th style="width:110px;">Kode</th>
+        <th style="width:80px;">Versi</th>
+        <th style="width:110px;">Status</th>
+        <th style="width:150px;">Update</th>
+        <th style="width:90px;text-align:right;">Aksi</th>
+      </tr></thead>
+      <tbody>
+        ${filtered.map((m,i)=>`
+        <tr>
+          <td style="text-align:center;font-weight:600;">${i+1}</td>
+          <td>
+            <div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-manual="${m.id}">${escHtml(m.name)}</div>
+            <div style="font-size:11.5px;color:var(--ink-soft);">Direktorat: ${escHtml(docDirectorateName(m.directorateId))}</div>
+          </td>
+          <td style="font-family:monospace;font-weight:600;color:var(--primary);">${escHtml(m.code)}</td>
+          <td>${escHtml(m.version||'-')}</td>
+          <td>${docStatusBadge(m.status)}</td>
+          <td style="font-size:12px;color:var(--ink-soft);">${escHtml(m.updated||'-')}${m.updatedBy?`<div style="font-size:11px;color:var(--ink-faint);">oleh ${escHtml(m.updatedBy)}</div>`:''}</td>
+          <td style="text-align:right;position:relative;">
+            <div style="display:inline-flex;gap:4px;">
+              <button class="btn-ghost btn-sm" style="padding:4px;" data-view-manual="${m.id}" title="Lihat">${ICONS.eye}</button>
+              <button class="kebab-btn" data-kebab="manual:${m.id}">${ICONS.kebab}</button>
+            </div>
+            ${kebabOpen('manual',m.id)?`<div class="kebab-menu"><button data-view-manual="${m.id}">${ICONS.eye} Lihat</button><button data-edit-manual="${m.id}">${ICONS.edit} Ubah</button><button class="danger" data-delete-manual="${m.id}">${ICONS.trash} Hapus</button></div>`:''}
+          </td>
+        </tr>`).join('')}
+        ${!filtered.length?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada dokumen yang sesuai filter. <button class="add-inline-btn" data-add-manual="1" style="display:inline;">+ Tambah Dokumen</button></td></tr>`:''}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderManualMutuDetailPage(){
+  seedDocsIfEmpty();
+  const m=(S.manuals||[]).find(x=>x.id===S.mmDetailId);
+  if(!m) return '<div class="empty-state"><p>Dokumen tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-manual-list="1">Kembali</button></div>';
+  const chapters=ensureManualChapters(m);
+  return `
+  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-manual-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar Manual Mutu</button></div>
+  <div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
+    <div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-secondary btn-sm" data-export-pdf="manual:${m.id}">Export PDF</button><button class="btn btn-secondary btn-sm" data-edit-manual="${m.id}">${ICONS.edit} Ubah</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-manual="${m.id}">${ICONS.trash} Hapus</button></div></div>
+    <div class="jd-header-main">
+      <div class="jd-header-title-row"><h1 class="jd-header-title">${escHtml(m.name)}</h1>${docStatusBadge(m.status)}</div>
+      <div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">${escHtml(docDirectorateName(m.directorateId))}</span><span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(m.code)}</span></div>
+      <div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">${escHtml(m.version||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">${escHtml(m.updated||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Bab</span><span class="jd-pill-val">${chapters.length}</span></span></div></div>
+    </div>
+  </div>
+  <div class="jd-section-card" style="margin-bottom:16px;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;"><button class="btn btn-primary btn-sm" data-add-chapter="manual:${m.id}">+ Tambah Bab</button></div>
+    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;">Bab <b>Pendahuluan</b> wajib ada dan tidak bisa dihapus. Bab lain bebas ditambah sesuai kebutuhan karena manual mutu tidak ada format khusus.</div>
+    ${renderChapterToggleList('manual', m.id, chapters)}
+  </div>`;
+}
+
+function renderSopPage(){
+  seedDocsIfEmpty();
+  const q=(S.sopSearch||'').toLowerCase().trim();
+  const dirF=S.sopDirectorate||'ALL', divF=S.sopDivision||'ALL', depF=S.sopDepartment||'ALL';
+  const dirs=S.directorates||[];
+  const divs=docDivisions(dirF);
+  const deps=docDepartments(divF);
+  const filtered=(S.sops||[]).filter(s=>{
+    if(dirF!=='ALL' && s.directorateId!==dirF) return false;
+    if(divF!=='ALL' && s.divisionId!==divF) return false;
+    if(depF!=='ALL' && s.departmentId!==depF) return false;
+    if(q){
+      const hay=((s.name||'')+' '+(s.code||'')+' '+(s.pic||'')+' '+(s.purpose||'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  return `
+  <div class="page-head" style="margin-bottom:20px;">
+    <div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">SOP</h1>
+    <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Alur proses kerja &bull; ${filtered.length} SOP &bull; flowchart digambar di draw.io, tersimpan sebagai gambar di web</p></div>
+    <button class="btn btn-primary" data-add-sop="1">+ Buat SOP</button>
+  </div>
+  <div class="pm-toolbar" style="margin-bottom:16px;">
+    <div class="pm-filters">
+      <div class="search-box pm-search" style="min-width:220px;"><input type="text" id="sop-search-input" placeholder="Cari kode / nama / PIC..." value="${escAttr(S.sopSearch||'')}"></div>
+      <select id="sop-filter-directorate" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;">
+        <option value="ALL">Semua Direktorat</option>
+        ${dirs.map(d=>`<option value="${escAttr(d.id)}" ${dirF===d.id?'selected':''}>${escHtml(d.name)}</option>`).join('')}
+      </select>
+      <select id="sop-filter-division" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;">
+        <option value="ALL">Semua Divisi</option>
+        ${divs.map(v=>`<option value="${escAttr(v.id)}" ${divF===v.id?'selected':''}>${escHtml(v.name)}</option>`).join('')}
+      </select>
+      <select id="sop-filter-department" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;">
+        <option value="ALL">Semua Departemen</option>
+        ${deps.map(dp=>`<option value="${escAttr(dp.id)}" ${depF===dp.id?'selected':''}>${escHtml(dp.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.sops||[]).length} SOP</div>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;min-width:900px;">
+      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama SOP</th><th style="width:110px;">Kode</th><th style="width:80px;">Versi</th><th style="width:110px;">Status</th><th style="width:150px;">Update</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+      <tbody>
+        ${filtered.map((s,i)=>`
+        <tr>
+          <td style="text-align:center;font-weight:600;">${i+1}</td>
+          <td><div style="display:flex;gap:10px;align-items:center;">
+            <img src="${s.preview||sopFlowchartSVG(s.code,s.name)}" alt="flowchart" style="width:56px;height:34px;object-fit:cover;border:1px solid var(--border);border-radius:6px;background:#fff;flex-shrink:0;cursor:pointer;" data-view-sop="${s.id}">
+            <div><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-sop="${s.id}">${escHtml(s.name)}</div>
+            <div style="font-size:11.5px;color:var(--ink-soft);max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.purpose||'-')}</div>
+            <div style="font-size:11px;color:var(--ink-faint);">${escHtml(docDivisionName(s.divisionId))}${s.departmentId?' / '+escHtml(docDepartmentName(s.departmentId)):''} &bull; PIC ${escHtml(s.pic||'-')}</div></div>
+          </div></td>
+          <td style="font-family:monospace;font-weight:600;color:var(--primary);">${escHtml(s.code)}</td>
+          <td>${escHtml(s.version||'-')}</td>
+          <td>${docStatusBadge(s.status)}</td>
+          <td style="font-size:12px;color:var(--ink-soft);">${escHtml(s.updated||'-')}<div style="font-size:11px;color:var(--ink-faint);">oleh ${escHtml(s.updatedBy||'-')}</div></td>
+          <td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;">
+            <button class="btn-ghost btn-sm" style="padding:4px;" data-view-sop="${s.id}" title="Lihat Flowchart">${ICONS.eye}</button>
+            <button class="kebab-btn" data-kebab="sop:${s.id}">${ICONS.kebab}</button></div>
+            ${kebabOpen('sop',s.id)?`<div class="kebab-menu"><button data-view-sop="${s.id}">${ICONS.eye} Lihat Flowchart</button><button data-edit-sop-drawio="${s.id}">${ICONS.edit} Edit di draw.io</button><button class="danger" data-delete-sop="${s.id}">${ICONS.trash} Hapus</button></div>`:''}
+          </td>
+        </tr>`).join('')}
+        ${!filtered.length?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada SOP yang sesuai filter.</td></tr>`:''}
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:10px;font-size:12px;color:var(--ink-faint);">Edit membuka draw.io di tab baru. View menampilkan gambar flowchart hasil embed (tanpa kolom link).</div>`;
+}
+
+function renderSopDetailPage(){
+  seedDocsIfEmpty();
+  const s=(S.sops||[]).find(x=>x.id===S.sopDetailId);
+  if(!s) return '<div class="empty-state"><p>SOP tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-sop-list="1">Kembali</button></div>';
+  const img=s.preview||sopFlowchartSVG(s.code,s.name);
+  if(!s.chapters || !s.chapters.length){
+    s.chapters=[
+      {id:'bab-penjelasan', title:'Penjelasan Umum', content:'Maksud dan Tujuan:\n'+(s.purpose||'-')+'\n\nRuang Lingkup:\n'+(s.scope||'-')+'\n\nReferensi:\n'+(s.reference||'-')+'\n\nDefinisi Istilah:\n'+(s.definitions||'-')},
+      {id:'bab-detail', title:'Detail Proses', content:s.detailProses||s.steps||'-'},
+      {id:'bab-komunikasi', title:'Proses Komunikasi', content:s.communication||'-'}
+    ];
+  }
+  const diagramOpen=isChapterOpen(s.id, 'bab-diagram', false);
+  const chaptersHtml='<div class="pillar-accordion">'
+    + s.chapters.map(function(ch, idx){
+      var open=isChapterOpen(s.id, ch.id, idx===0);
+      return `
+      <div class="pillar">
+        <button class="pillar-head" data-toggle-chapter="sop:${s.id}:${ch.id}" style="gap:10px;">
+          <span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;">
+            <span class="n" style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">${String(idx+1).padStart(2,'0')}</span>
+            <span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(ch.title||('Bab '+(idx+1)))}</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:4px;flex-shrink:0;" onclick="event.stopPropagation();">
+            <span class="btn-ghost btn-sm" style="padding:4px 6px;" data-edit-chapter="sop:${s.id}:${ch.id}" title="Ubah isi bab">${ICONS.edit}</span>
+            <span style="color:var(--ink-faint);display:inline-flex;">${open?ICONS.chevronDown:ICONS.chevron}</span>
+          </span>
+        </button>
+        ${open?`<div class="pillar-body"><div class="narrative"><p style="white-space:pre-line;margin:0;">${escHtml(ch.content||'-')}</p></div></div>`:''}
+      </div>`;
+    }).join('')
+    + `
+    <div class="pillar">
+      <button class="pillar-head" data-toggle-chapter="sop:${s.id}:bab-diagram" style="gap:10px;">
+        <span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;">
+          <span class="n" style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">${String(s.chapters.length+1).padStart(2,'0')}</span>
+          <span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Diagram Alir</span>
+        </span>
+        <span style="color:var(--ink-faint);display:inline-flex;">${diagramOpen?ICONS.chevronDown:ICONS.chevron}</span>
+      </button>
+      ${diagramOpen?`<div class="pillar-body">
+        <div style="background:var(--dept-bg);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;">
+          <img src="${img}" alt="Flowchart ${escAttr(s.code)}" style="max-width:100%;height:auto;border:1px solid var(--border);border-radius:8px;background:#fff;">
+        </div>
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:8px;">Klik Edit di draw.io untuk mengubah, gambar di sini terupdate otomatis.</div>
+      </div>`:''}
+    </div>`
+    +'</div>';
+  return `
+  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-sop-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar SOP</button></div>
+  <div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
+    <div class="jd-header-nav"><div></div><div class="jd-header-actions">
+      <button class="btn btn-secondary btn-sm" data-export-pdf="sop:${s.id}">Export PDF</button>
+      <button class="btn btn-primary btn-sm" data-edit-sop-drawio="${s.id}">Edit di draw.io</button>
+      <button class="btn btn-secondary btn-sm" data-download-sop="${s.id}">Ekspor PNG</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-sop="${s.id}">${ICONS.trash}</button>
+    </div></div>
+    <div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">[${escHtml(s.code)}] ${escHtml(s.name)}</h1>${docStatusBadge(s.status)}</div>
+    <div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">${escHtml(docDirectorateName(s.directorateId))}</span><span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDivisionName(s.divisionId))}</span>${s.departmentId?`<span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDepartmentName(s.departmentId))}</span>`:''}</div>
+    <div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">${escHtml(s.version||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">${escHtml(s.updated||'-')}</span></span></div></div></div>
+  </div>
+  <div class="detail-main" style="display:flex;flex-direction:column;gap:16px;">
+    <div class="jd-section-card">
+      ${chaptersHtml}
+    </div>
+  </div>`;
+}
+
+function renderHandbookPage(){
+  seedDocsIfEmpty();
+  const q=(S.thbSearch||'').toLowerCase().trim();
+  const dirF=S.thbDirectorate||'ALL', divF=S.thbDivision||'ALL', depF=S.thbDepartment||'ALL';
+  const dirs=S.directorates||[];
+  const divs=docDivisions(dirF);
+  const deps=docDepartments(divF);
+  const filtered=(S.handbooks||[]).filter(h=>{
+    if(dirF!=='ALL' && h.directorateId!==dirF) return false;
+    if(divF!=='ALL' && h.divisionId!==divF) return false;
+    if(depF!=='ALL' && h.departmentId!==depF) return false;
+    if(q){
+      const hay=((h.name||'')+' '+(h.code||'')+' '+(h.category||'')+' '+(h.summary||'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  return `
+  <div class="page-head" style="margin-bottom:20px;">
+    <div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Technical Handbook</h1>
+    <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Metode teknis dan cara penerapan &bull; ${filtered.length} handbook</p></div>
+    <button class="btn btn-primary" data-add-handbook="1">+ Tambah Handbook</button>
+  </div>
+  <div class="pm-toolbar" style="margin-bottom:16px;">
+    <div class="pm-filters">
+      <div class="search-box pm-search" style="min-width:220px;"><input type="text" id="thb-search-input" placeholder="Cari judul / kategori..." value="${escAttr(S.thbSearch||'')}"></div>
+      <select id="thb-filter-directorate" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Direktorat</option>${dirs.map(d=>`<option value="${escAttr(d.id)}" ${dirF===d.id?'selected':''}>${escHtml(d.name)}</option>`).join('')}</select>
+      <select id="thb-filter-division" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Divisi</option>${divs.map(v=>`<option value="${escAttr(v.id)}" ${divF===v.id?'selected':''}>${escHtml(v.name)}</option>`).join('')}</select>
+      <select id="thb-filter-department" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Departemen</option>${deps.map(dp=>`<option value="${escAttr(dp.id)}" ${depF===dp.id?'selected':''}>${escHtml(dp.name)}</option>`).join('')}</select>
+    </div>
+    <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.handbooks||[]).length}</div>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;min-width:900px;">
+      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Judul Handbook</th><th style="width:110px;">Kode</th><th style="width:130px;">Kategori</th><th style="width:80px;">Versi</th><th style="width:150px;">Update</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+      <tbody>
+        ${filtered.map((h,i)=>`
+        <tr><td style="text-align:center;font-weight:600;">${i+1}</td>
+        <td><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-handbook="${h.id}">${escHtml(h.name)}</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);max-width:380px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(h.summary||'-')}</div>
+        <div style="font-size:11px;color:var(--ink-faint);">${escHtml(docDivisionName(h.divisionId))}${h.departmentId?' / '+escHtml(docDepartmentName(h.departmentId)):''}</div></td>
+        <td style="font-family:monospace;font-weight:600;color:var(--primary);">${escHtml(h.code)}</td>
+        <td><span class="badge badge-division">${escHtml(h.category||'-')}</span></td>
+        <td>${escHtml(h.version||'-')}</td>
+        <td style="font-size:12px;color:var(--ink-soft);">${escHtml(h.updated||'-')}<div style="font-size:11px;color:var(--ink-faint);">oleh ${escHtml(h.updatedBy||'-')}</div></td>
+        <td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;"><button class="btn-ghost btn-sm" style="padding:4px;" data-view-handbook="${h.id}" title="Lihat">${ICONS.eye}</button><button class="kebab-btn" data-kebab="handbook:${h.id}">${ICONS.kebab}</button></div>
+        ${kebabOpen('handbook',h.id)?`<div class="kebab-menu"><button data-view-handbook="${h.id}">${ICONS.eye} Lihat</button><button data-edit-handbook="${h.id}">${ICONS.edit} Ubah</button><button class="danger" data-delete-handbook="${h.id}">${ICONS.trash} Hapus</button></div>`:''}</td></tr>`).join('')}
+        ${!filtered.length?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada handbook yang sesuai filter.</td></tr>`:''}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderHandbookDetailPage(){
+  seedDocsIfEmpty();
+  const h=(S.handbooks||[]).find(x=>x.id===S.thbDetailId);
+  if(!h) return '<div class="empty-state"><p>Handbook tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-handbook-list="1">Kembali</button></div>';
+  if(!h.chapters || !h.chapters.length){
+    h.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:h.summary||'-'}];
+    if(h.tools) h.chapters.push({id:'bab-'+uid(), title:'Alat dan Bahan', content:h.tools});
+    if(h.spec) h.chapters.push({id:'bab-'+uid(), title:'Spesifikasi', content:h.spec});
+    if(h.steps) h.chapters.push({id:'bab-'+uid(), title:'Langkah Kerja', content:h.steps});
+  }
+  return `
+  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-handbook-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar Handbook</button></div>
+  <div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
+    <div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-secondary btn-sm" data-export-pdf="handbook:${h.id}">Export PDF</button><button class="btn btn-secondary btn-sm" data-edit-handbook="${h.id}">${ICONS.edit} Ubah</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-handbook="${h.id}">${ICONS.trash} Hapus</button></div></div>
+    <div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">${escHtml(h.name)}</h1>${docStatusBadge(h.status)}</div>
+    <div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">${escHtml(docDirectorateName(h.directorateId))}</span><span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDivisionName(h.divisionId))}</span>${h.departmentId?`<span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDepartmentName(h.departmentId))}</span>`:''}</div>
+    <div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Kode</span><span class="jd-pill-val">${escHtml(h.code)}</span></span><span class="jd-pill"><span class="jd-pill-label">Kategori</span><span class="jd-pill-val">${escHtml(h.category||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">${escHtml(h.version||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Bab</span><span class="jd-pill-val">${h.chapters.length}</span></span></div></div></div>
+  </div>
+  <div class="jd-section-card">
+    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;">Bab format pasti, judul dikunci. Klik bab untuk buka / tutup, ikon ✎ untuk ubah isi.</div>
+    ${renderChapterToggleList('handbook', h.id, h.chapters)}
+  </div>`;
+}
+
 function modalShell(title, body, foot, isWide = false){
   return `
   <div class="modal-overlay" id="modal-overlay">
@@ -5189,6 +5810,7 @@ function modalShell(title, body, foot, isWide = false){
       if (resKuartal) {
         initKuartalData(resKuartal);
       }
+      seedDocsIfEmpty();
       render();
     } catch(e) {
       console.log('Error loading json data:', e);
