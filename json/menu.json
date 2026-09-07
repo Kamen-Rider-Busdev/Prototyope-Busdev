@@ -7,7 +7,7 @@
         "label": "Governance & Quality Manual",
         "desc": "Kebijakan, prinsip, standar mutu",
         "icon": "shield",
-        "real": false
+        "real": true
       },
       {
         "key": "job-description",
@@ -21,14 +21,14 @@
         "label": "SOP",
         "desc": "Alur proses kerja",
         "icon": "fileText",
-        "real": false
+        "real": true
       },
       {
         "key": "technical-handbook",
         "label": "Technical Handbook",
         "desc": "Metode teknis dan cara penerapan",
         "icon": "book",
-        "real": false
+        "real": true
       },
       {
         "key": "knowledge-base",
