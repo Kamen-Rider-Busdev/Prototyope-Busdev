@@ -50,16 +50,23 @@
             S.page = 'job-description';
           } else if (key === 'governance-quality-manual') {
             try{ if(window.App && window.App.seedDocsIfEmpty) window.App.seedDocsIfEmpty(); }catch(e){}
-            S.page = 'governance-quality-manual';
-            S.mmDetailId = null;
+            S.page = 'governance-quality-manual'; S.mmDetailId = null;
           } else if (key === 'sop') {
             try{ if(window.App && window.App.seedDocsIfEmpty) window.App.seedDocsIfEmpty(); }catch(e){}
-            S.page = 'sop';
-            S.sopDetailId = null;
+            S.page = 'sop'; S.sopDetailId = null;
           } else if (key === 'technical-handbook') {
             try{ if(window.App && window.App.seedDocsIfEmpty) window.App.seedDocsIfEmpty(); }catch(e){}
-            S.page = 'technical-handbook';
-            S.thbDetailId = null;
+            S.page = 'technical-handbook'; S.thbDetailId = null;
+          } else if (key === 'knowledge-base') {
+            try{ if(window.App && window.App.seedDocsIfEmpty) window.App.seedDocsIfEmpty(); }catch(e){}
+            S.page = 'knowledge-base'; S.kbDetailId = null;
+          } else if (key === 'database-management') {
+            S.page = 'database-management';
+            S.dbView = 'databases'; S.dbActiveDb = null; S.dbActiveTable = null;
+          } else if (key === 'database-project') {
+            S.page = 'database-project';
+          } else if (key === 'query-management') {
+            S.page = 'query-management';
           } else if (key === 'open-branch') {
             S.page = 'open-branch';
           } else if (key === 'kuartal') {

@@ -33,7 +33,8 @@
   fileText: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`,
   shield: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>`,
   book: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>`,
-  calendar: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`
+  calendar: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`,
+  database: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`
 };
   const uid = (() => { let n = 1000; return () => (++n).toString(36); })();
 
@@ -154,23 +155,29 @@
     holidayDivision: 'ALL',
     scheduleRosterSearch: '',
     scheduleData: { attendance: [], leaveRequests: [], holidays: [], employeeRoster: [] },
-    // ===== Dokumen: Manual Mutu / SOP / Technical Handbook (tanpa kolom link) =====
-    manuals: [],
-    sops: [],
-    handbooks: [],
-    mmSearch: '',
-    mmDirectorate: 'ALL',
-    mmDetailId: null,
-    sopSearch: '',
-    sopDirectorate: 'ALL',
-    sopDivision: 'ALL',
-    sopDepartment: 'ALL',
-    sopDetailId: null,
-    thbSearch: '',
-    thbDirectorate: 'ALL',
-    thbDivision: 'ALL',
-    thbDepartment: 'ALL',
-    thbDetailId: null
+    manuals: [], sops: [], handbooks: [], kbs: [],
+    mmSearch: '', mmDirectorate: 'ALL', mmDetailId: null,
+    sopSearch: '', sopDirectorate: 'ALL', sopDivision: 'ALL', sopDepartment: 'ALL', sopDetailId: null,
+    thbSearch: '', thbDirectorate: 'ALL', thbDivision: 'ALL', thbDepartment: 'ALL', thbDetailId: null,
+    kbSearch: '', kbKategori: 'ALL', kbDetailId: null,
+    docOpen: {},
+    docxEdit: {},
+    docxBackup: {},
+    docxZoom: {},
+    dbView: 'databases',
+    dbActiveDb: null,
+    dbActiveTable: null,
+    dbEditorScope: 'overall',
+    dbEditorZoom: 100,
+    dbCodeDraft: null,
+    dbPositions: {},
+    dbDrag: null,
+    dbFilterOpen: false,
+    dbAddMenuOpen: false,
+    dbPeruntukanFilter: 'ALL',
+    dbProjectList: [],
+    dbProjectSearch: '',
+    dbProjectDetailId: null
   };
 
   function findDirectorate(id){ return S.directorates.find(d=>d.id===id); }
@@ -237,7 +244,7 @@
     createStandardMonitors, findDirectorate, findDivision, findDepartment,
     findJobRole, headOfDivisionRole, jobRoleContext, getFilteredDir, countJobRoles,
     docDirectorateName, docDivisionName, docDepartmentName, docDivisions, docDepartments, docStatusBadge, sopFlowchartSVG, seedDocsIfEmpty,
-    ensureManualChapters, isChapterOpen, renderChapterToggleList
+    seedDbProjectsIfEmpty, ensureManualChapters, isChapterOpen, renderChapterToggleList, renderDocxEditor
   };
 
   window.S = S;
@@ -308,6 +315,795 @@ function renderLogin(){
 }
 
 
+function getDbStats(){
+  if(typeof DB_STATS !== 'undefined') return DB_STATS;
+  if(typeof DB_MODEL !== 'undefined'){
+    let t=0,a=0,f=0;
+    DB_MODEL.databases.forEach(db=>{ t+=db.tables.length; db.tables.forEach(tb=>{ a+=tb.attrs.length; f+=tb.fkCols.length; }); });
+    return { dbs: DB_MODEL.databases.length, tables: t, attrs: a, fks: f };
+  }
+  return { dbs: 6, tables: 77, attrs: 810, fks: 145 };
+}
+function getDbByName(name){
+  if(typeof DB_MODEL==='undefined') return null;
+  return DB_MODEL.databases.find(d=>d.name===name)||null;
+}
+function getTableByFull(full){
+  if(typeof DB_MODEL==='undefined') return null;
+  for(const db of DB_MODEL.databases){ for(const tb of db.tables){ if(tb.full===full) return tb; } }
+  return null;
+}
+function generateDBMLForScope(scope){
+  if(typeof DB_MODEL==='undefined') return '';
+  if(scope==='overall'){
+    let out='';
+    DB_MODEL.databases.forEach(db=>{
+      out+=`Database ${db.name} {\n`;
+      db.tables.forEach(tb=>{
+        out+=`  Table ${tb.name} {\n`;
+        tb.attrs.forEach(c=>{ out+=`    ${c.name} ${c.type}${c.pk?' [pk]':''}\n`; });
+        out+=`  }\n`;
+      });
+      out+=`}\n\n`;
+    });
+    if(typeof DB_REFS!=='undefined'){
+      DB_REFS.forEach(r=>{ out+=`Ref: ${r.from} > ${r.to}\n`; });
+    }
+    return out;
+  } else {
+    const db=getDbByName(scope);
+    if(!db) return '';
+    let out=`// Database: ${db.name} — ${db.tables.length} tables, ${DB_MODEL.type}\n`;
+    db.tables.forEach(tb=>{
+      out+=`Table ${tb.name} {\n`;
+      tb.attrs.forEach(c=>{ out+=`  ${c.name} ${c.type}${c.pk?' [pk]':''}\n`; });
+      out+=`}\n`;
+    });
+    if(typeof DB_REFS!=='undefined'){
+      DB_REFS.forEach(r=>{
+        if(r.srcDbTbl.startsWith(scope+'.') || r.dstDbTbl.startsWith(scope+'.')) out+=`Ref: ${r.from} > ${r.to}\n`;
+      });
+    }
+    return out;
+  }
+}
+function parseDBMLForScope(scope, text){
+  if(typeof DB_MODEL==='undefined' || !text) return {ok:false, msg:'Model tidak termuat'};
+  const lines=text.split('\n');
+  const parseTableBlock=(blockText)=>{
+    const tables=[];
+    const tableRe=/Table\s+(?:([\w]+)\.)?([\w]+)\s*\{([^}]*)\}/g;
+    let m;
+    while((m=tableRe.exec(blockText))!==null){
+      const tblName=m[2];
+      const body=m[3];
+      const cols=[];
+      body.split('\n').forEach(l=>{
+        l=l.trim(); if(!l || l.startsWith('//')) return;
+        const cm=l.match(/^(\w+)\s+(\w+)(?:\s*\[pk\])?/);
+        if(cm) cols.push({name:cm[1], type:cm[2], pk:l.includes('[pk]'), fk:false});
+      });
+      tables.push({name:tblName, cols});
+    }
+    return tables;
+  };
+  try{
+    if(scope==='overall'){
+      // parse Database blocks
+      const dbRe=/Database\s+(\w+)\s*\{([\s\S]*?)^\}/gm;
+      let m;
+      const newDbs=[];
+      const foundDbs=new Set();
+      while((m=dbRe.exec(text))!==null){
+        const dbName=m[1];
+        const dbBody=m[2];
+        foundDbs.add(dbName);
+        const tbls=parseTableBlock(dbBody);
+        let db=getDbByName(dbName);
+        if(!db) db={name:dbName, tables:[]};
+        // rebuild tables from parsed
+        const newTables=[];
+        tbls.forEach(t=>{
+          let existing=db.tables.find(x=>x.name===t.name);
+          if(existing){
+            // update cols, keep fk flag from existing if needed
+            const newAttrs=t.cols.map(c=>{
+              const ex=existing.attrs.find(a=>a.name===c.name);
+              return {name:c.name, type:c.type, pk:c.pk, fk:ex?ex.fk:false};
+            });
+            newTables.push({name:t.name, full:dbName+'.'+t.name, attrs:newAttrs, fkCols: existing.fkCols||[]});
+          } else {
+            newTables.push({name:t.name, full:dbName+'.'+t.name, attrs:t.cols.map(c=>({name:c.name,type:c.type,pk:c.pk,fk:false})), fkCols:[]});
+          }
+        });
+        db.tables=newTables;
+        newDbs.push(db);
+      }
+      // keep dbs not in text? remove or keep? For overall, we replace with parsed
+      if(newDbs.length){
+        DB_MODEL.databases=newDbs;
+      }
+      // parse refs
+      const refRe=/Ref:\s*([\w\.]+)\s*>\s*([\w\.]+)/g;
+      const newRefs=[];
+      while((m=refRe.exec(text))!==null){
+        const from=m[1], to=m[2];
+        const sIdx=from.lastIndexOf('.');
+        const dIdx=to.lastIndexOf('.');
+        const srcTbl=from.substring(0,sIdx);
+        const srcCol=from.substring(sIdx+1);
+        const dstTbl=to.substring(0,dIdx);
+        const dstCol=to.substring(dIdx+1);
+        newRefs.push({from, to, srcDbTbl:srcTbl, srcCol, dstDbTbl:dstTbl, dstCol});
+        // mark fk
+        const tb=getTableByFull(srcTbl);
+        if(tb){
+          const col=tb.attrs.find(c=>c.name===srcCol);
+          if(col) col.fk=true;
+          if(!tb.fkCols.includes(srcCol)) tb.fkCols.push(srcCol);
+        }
+      }
+      if(typeof DB_REFS!=='undefined'){
+        DB_REFS.length=0;
+        newRefs.forEach(r=>DB_REFS.push(r));
+      }
+      return {ok:true};
+    } else {
+      const db=getDbByName(scope);
+      if(!db) return {ok:false, msg:'Database tidak ditemukan'};
+      const tbls=parseTableBlock(text);
+      const newTables=[];
+      tbls.forEach(t=>{
+        let existing=db.tables.find(x=>x.name===t.name);
+        if(existing){
+          const newAttrs=t.cols.map(c=>{
+            const ex=existing.attrs.find(a=>a.name===c.name);
+            return {name:c.name, type:c.type, pk:c.pk, fk:ex?ex.fk:false};
+          });
+          newTables.push({name:t.name, full:scope+'.'+t.name, attrs:newAttrs, fkCols: existing.fkCols||[]});
+        } else {
+          newTables.push({name:t.name, full:scope+'.'+t.name, attrs:t.cols.map(c=>({name:c.name,type:c.type,pk:c.pk,fk:false})), fkCols:[]});
+        }
+      });
+      db.tables=newTables;
+      // refs for this scope
+      const refRe=/Ref:\s*([\w\.]+)\s*>\s*([\w\.]+)/g;
+      let m;
+      const keepRefs=[];
+      if(typeof DB_REFS!=='undefined'){
+        DB_REFS.forEach(r=>{
+          if(r.srcDbTbl.startsWith(scope+'.') || r.dstDbTbl.startsWith(scope+'.')){
+            // will be replaced, skip
+          } else keepRefs.push(r);
+        });
+        const newScoped=[];
+        while((m=refRe.exec(text))!==null){
+          const from=m[1], to=m[2];
+          let fullFrom=from, fullTo=to;
+          if(!from.includes('.')) fullFrom=scope+'.'+from;
+          else if(!from.includes(scope+'.') && from.split('.').length===2) {
+            // if from is like users.branch_id without db, prefix
+            const parts=from.split('.');
+            fullFrom=scope+'.'+parts[0]+'.'+parts[1];
+            // actually from is table.col, need db.table.col? For per-db, from may be table.col
+            // we'll treat as scope.table.col
+            fullFrom=scope+'.'+from;
+          }
+          if(!to.includes('.')) fullTo=scope+'.'+to;
+          else if(to.split('.').length===2) fullTo=scope+'.'+to;
+          // normalize to db.table.col
+          if(fullFrom.split('.').length===2) fullFrom=scope+'.'+fullFrom;
+          if(fullTo.split('.').length===2) fullTo=scope+'.'+fullTo;
+          const sIdx=fullFrom.lastIndexOf('.');
+          const srcTbl=fullFrom.substring(0,sIdx);
+          const srcCol=fullFrom.substring(sIdx+1);
+          const tb2=getTableByFull(srcTbl);
+          if(tb2){
+            const col=tb2.attrs.find(c=>c.name===srcCol);
+            if(col) col.fk=true;
+            if(!tb2.fkCols.includes(srcCol)) tb2.fkCols.push(srcCol);
+          }
+          newScoped.push({from:fullFrom, to:fullTo, srcDbTbl:srcTbl, srcCol, dstDbTbl:fullTo.substring(0,fullTo.lastIndexOf('.')), dstCol:fullTo.substring(fullTo.lastIndexOf('.')+1)});
+        }
+        DB_REFS.length=0;
+        keepRefs.forEach(r=>DB_REFS.push(r));
+        newScoped.forEach(r=>DB_REFS.push(r));
+      }
+      return {ok:true};
+    }
+  }catch(e){ return {ok:false, msg:e.message}; }
+}
+window.generateDBMLForScope = generateDBMLForScope;
+window.parseDBMLForScope = parseDBMLForScope;
+window.getDbStats = getDbStats;
+window.getDbByName = getDbByName;
+window.getTableByFull = getTableByFull;
+if(window.App){
+  window.App.generateDBMLForScope = generateDBMLForScope;
+  window.App.parseDBMLForScope = parseDBMLForScope;
+  window.App.getDbStats = getDbStats;
+  window.App.getDbByName = getDbByName;
+  window.App.getTableByFull = getTableByFull;
+}
+function renderDatabasePage(){
+  if(typeof DB_MODEL==='undefined'){
+    return `<div class="page-head" style="margin-bottom:20px;"><div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Database Management</h1><p style="margin:0;font-size:13.5px;color:var(--ink-soft);">MySQL &bull; Strategic Growth & Product</p></div></div><div class="empty-state"><p>Data model belum termuat.</p></div>`;
+  }
+  const view = S.dbView || 'databases';
+  const stats = getDbStats();
+
+  if(view==='attributes' && S.dbActiveDb && S.dbActiveTable){
+    const tb = getTableByFull(S.dbActiveDb + '.' + S.dbActiveTable) || getTableByFull(S.dbActiveTable);
+    const db = getDbByName(S.dbActiveDb);
+    if(!tb) return `<div class="empty-state"><p>Tabel tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-db-back-tables="1">Kembali</button></div>`;
+    return `
+    <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-db-back-tables="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke ${escHtml(S.dbActiveDb)}</button></div>
+    <div class="page-head" style="margin-bottom:14px;">
+      <div>
+        <h1 style="font-size:20px;font-weight:700;margin:0 0 4px;">${escHtml(tb.full)}</h1>
+        <p style="margin:0;font-size:12.5px;color:var(--ink-soft);">Database <b>${escHtml(S.dbActiveDb)}</b> &bull; ${tb.attrs.length} atribut &bull; ${tb.fkCols.length} foreign key &bull; view only</p>
+      </div>
+    </div>
+    <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+      <table class="data-table" style="border:none;border-radius:0;min-width:700px;">
+        <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Atribut</th><th style="width:140px;">Tipe</th><th style="width:110px;text-align:center;">Key</th><th style="width:110px;text-align:center;">FK</th></tr></thead>
+        <tbody>
+          ${tb.attrs.map((c,i)=>`
+            <tr>
+              <td style="text-align:center;font-weight:600;">${i+1}</td>
+              <td style="font-family:monospace;font-weight:600;color:var(--ink);">${escHtml(c.name)}</td>
+              <td><span class="badge badge-staff">${escHtml(c.type)}</span></td>
+              <td style="text-align:center;">${c.pk?'<span class="badge badge-division">PK</span>':'<span style="color:var(--ink-faint);">-</span>'}</td>
+              <td style="text-align:center;">${c.fk?'<span class="badge badge-lifecycle-pra-release">FK</span>':'<span style="color:var(--ink-faint);">-</span>'}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--ink-faint);">PK = Primary Key, FK = Foreign Key (relasi). Tidak ada aksi ubah/hapus pada mode view only.</div>`;
+  }
+
+  if(view==='tables' && S.dbActiveDb){
+    const db = getDbByName(S.dbActiveDb);
+    if(!db) return `<div class="empty-state"><p>Database tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-db-back-databases="1">Kembali</button></div>`;
+    return `
+    <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-db-back-databases="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Database</button></div>
+    <div class="page-head" style="margin-bottom:14px;">
+      <div>
+        <h1 style="font-size:20px;font-weight:700;margin:0 0 4px;">${escHtml(db.name)}</h1>
+        <p style="margin:0;font-size:12.5px;color:var(--ink-soft);">${DB_MODEL.type} &bull; ${db.tables.length} tabel &bull; ${db.tables.reduce((s,t)=>s+t.attrs.length,0)} atribut &bull; view only</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" data-db-open-editor="${escAttr(db.name)}">${ICONS.eye} Lihat Diagram</button>
+    </div>
+    <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+      <table class="data-table" style="border:none;border-radius:0;min-width:800px;">
+        <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Tabel</th><th style="width:110px;text-align:center;">Atribut</th><th style="width:110px;text-align:center;">FK</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+        <tbody>
+          ${db.tables.map((tb,i)=>`
+            <tr>
+              <td style="text-align:center;font-weight:600;">${i+1}</td>
+              <td><div style="font-weight:600;color:var(--ink);font-family:monospace;">${escHtml(tb.full)}</div><div style="font-size:11px;color:var(--ink-faint);">${escHtml(tb.name)}</div></td>
+              <td style="text-align:center;"><span class="badge badge-staff">${tb.attrs.length}</span></td>
+              <td style="text-align:center;">${tb.fkCols.length?`<span class="badge badge-lifecycle-pra-release">${tb.fkCols.length}</span>`:'<span style="color:var(--ink-faint);">0</span>'}</td>
+              <td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-db-view-attrs="${escAttr(tb.full)}">${ICONS.eye} Detail</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  if(view==='diagram' || view==='editor'){
+    // Lihat Diagram: hanya visual full content — jika scope spesifik (misal griya_company), tampilkan relasi database itu saja
+    let scope = S.dbEditorScope || 'overall';
+    if(scope==='overall' && S.dbActiveDb) scope = S.dbActiveDb;
+    const isOverall = scope==='overall';
+    const db = isOverall ? null : getDbByName(scope);
+    const dbsForVisual = isOverall ? DB_MODEL.databases : (db ? [db] : []);
+    const zoom = (S.dbEditorZoomMap && S.dbEditorZoomMap[scope]) ? S.dbEditorZoomMap[scope] : (S.dbEditorZoom || 100);
+
+    if(!S.dbBoxPositions) S.dbBoxPositions={};
+    const dbCols = isOverall ? 2 : 1;
+    const dbGapX = 24, dbGapY = 24;
+    const baseDbW = 520, baseDbH = 320;
+    dbsForVisual.forEach((d, idx)=>{
+      if(!S.dbBoxPositions[d.name]){
+        const col = idx % dbCols, row = Math.floor(idx / dbCols);
+        S.dbBoxPositions[d.name] = {x: col*(baseDbW+dbGapX), y: row*(baseDbH+dbGapY), w: baseDbW, h: baseDbH + Math.ceil(d.tables.length/3)*(220+14)};
+      }
+    });
+
+    if(!S.dbPositions) S.dbPositions={};
+    if(!S.dbPositions['_global']) S.dbPositions['_global']={};
+    dbsForVisual.forEach(d=>{
+      const cols=3, cardW=220, gapX=12, cardH=150, gapY=12;
+      d.tables.forEach((tb, j)=>{
+        const key = tb.full;
+        if(!S.dbPositions['_global'][key]){
+          const col=j%cols, row=Math.floor(j/cols);
+          S.dbPositions['_global'][key]={x: 12 + col*(cardW+gapX), y: 44 + row*(cardH+gapY)};
+        }
+      });
+    });
+
+    const visFulls = new Set(dbsForVisual.flatMap(d=> d.tables.map(t=> t.full)));
+    const allRels = (typeof DB_REFS!=='undefined'?DB_REFS:[]).filter(r => visFulls.has(r.srcDbTbl) && visFulls.has(r.dstDbTbl));
+
+    let maxX=0, maxY=0;
+    dbsForVisual.forEach(d=>{
+      const pos = S.dbBoxPositions[d.name];
+      if(pos){ maxX=Math.max(maxX, pos.x+pos.w); maxY=Math.max(maxY, pos.y+pos.h); }
+    });
+    const canvasW=Math.max(800, maxX+24), canvasH=Math.max(500, maxY+24);
+
+    const svgLines = allRels.map(r=>{
+      const srcDb=r.srcDbTbl.split('.')[0], dstDb=r.dstDbTbl.split('.')[0];
+      const sDbPos=S.dbBoxPositions[srcDb], dDbPos=S.dbBoxPositions[dstDb];
+      const sPos=S.dbPositions['_global'][r.srcDbTbl];
+      const tPos=S.dbPositions['_global'][r.dstDbTbl];
+      if(!sDbPos||!dDbPos||!sPos||!tPos) return '';
+      const sx=sDbPos.x + sPos.x + 220, sy=sDbPos.y + sPos.y + 18;
+      const tx=dDbPos.x + tPos.x, ty=dDbPos.y + tPos.y + 18;
+      const mx=(sx+tx)/2;
+      return `<path d="M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ty}, ${tx} ${ty}" stroke="#A9793F" stroke-width="1.6" fill="none" marker-end="url(#dbArrowGlobal)" opacity="0.85"/>`;
+    }).join('');
+
+    return `
+    <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" data-db-back-databases="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Database</button>
+      <span style="margin-left:auto;display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-sm" data-db-manage="${escAttr(scope)}">Manage Code</button>
+      </span>
+    </div>
+    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--dept-bg);overflow:hidden;box-shadow:var(--shadow-card);">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:3;">
+        <span style="font-weight:700;font-size:13px;">Relasi Database &amp; Tabel — ${isOverall?'Keseluruhan (6 DB, 77 tabel)':escHtml(scope+' ('+(db?db.tables.length:0)+' tabel)')}</span>
+        <span style="font-size:11px;color:var(--ink-faint);">drag kotak database &amp; tabel — garis otomatis rapih</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+          <button class="btn btn-ghost btn-sm" data-db-auto-layout="${escAttr(scope)}" title="Rapikan otomatis">⟲ Auto Layout</button>
+          <button class="btn btn-ghost btn-sm" data-db-zoom="-10" data-zoom-scope="${escAttr(scope)}">−</button>
+          <span style="font-size:12px;min-width:42px;text-align:center;">${zoom}%</span>
+          <button class="btn btn-ghost btn-sm" data-db-zoom="10" data-zoom-scope="${escAttr(scope)}">+</button>
+        </span>
+      </div>
+      <div style="overflow:auto;max-height:calc(100vh - 260px);background:var(--dept-bg);position:relative;">
+        <div style="position:relative;width:${canvasW}px;height:${canvasH}px;zoom:${zoom}%;margin:12px;">
+          <svg style="position:absolute;inset:0;width:${canvasW}px;height:${canvasH}px;pointer-events:none;z-index:1;" width="${canvasW}" height="${canvasH}">
+            <defs><marker id="dbArrowGlobal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#A9793F"/></marker></defs>
+            ${svgLines}
+          </svg>
+          ${dbsForVisual.map(d=>{
+            const pos=S.dbBoxPositions[d.name];
+            const tables=d.tables;
+            return `
+            <div data-db-box="${escAttr(d.name)}" style="position:absolute;left:${pos.x}px;top:${pos.y}px;width:${pos.w}px;height:${pos.h}px;background:var(--surface);border:2px solid var(--primary);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(20,24,34,.12);z-index:2;display:flex;flex-direction:column;">
+              <div data-db-box-drag="${escAttr(d.name)}" style="padding:8px 12px;background:linear-gradient(135deg, var(--primary) 0%, #1D3352 100%);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;gap:8px;cursor:grab;user-select:none;flex-shrink:0;">
+                <span style="cursor:grab;">⠿</span><span style="font-family:monospace;">${escHtml(d.name)}</span><span style="font-size:11px;opacity:.85;background:rgba(255,255,255,.18);padding:2px 6px;border-radius:999px;">${d.peruntukan? (Array.isArray(d.peruntukan)?d.peruntukan.join(' • '):d.peruntukan) : ''}</span><span style="margin-left:auto;font-size:11px;opacity:.85;">${tables.length} tabel</span>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;background:var(--dept-bg);">
+                ${tables.map(tb=>{
+                  const tPos=S.dbPositions['_global'][tb.full]||{x:12,y:44};
+                  return `
+                  <div data-db-card="${escAttr(tb.full)}" style="position:absolute;left:${tPos.x}px;top:${tPos.y}px;width:220px;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(20,24,34,.06);z-index:2;">
+                    <div data-db-drag-handle="${escAttr(tb.full)}" style="background:var(--surface-raised);color:var(--ink);padding:6px 8px;font-weight:700;font-size:11px;display:flex;align-items:center;gap:6px;cursor:grab;user-select:none;border-bottom:1px solid var(--border);">
+                      <span style="cursor:grab;">⠿</span><span style="font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">${escHtml(tb.name)}</span>
+                    </div>
+                    <div style="max-height:110px;overflow:auto;">
+                      ${tb.attrs.slice(0,5).map(c=>`
+                        <div style="display:flex;align-items:center;gap:4px;padding:3px 8px;font-size:10px;font-family:monospace;border-bottom:1px solid var(--border);">
+                          <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</span>
+                          <span style="color:var(--ink-faint);font-size:9px;">${escHtml(c.type)}</span>
+                          ${c.pk?'<span class="badge badge-division" style="font-size:8px;padding:1px 3px;">PK</span>':''}
+                          ${c.fk?'<span class="badge badge-lifecycle-pra-release" style="font-size:8px;padding:1px 3px;">FK</span>':''}
+                        </div>
+                      `).join('')}
+                      ${tb.attrs.length>5?`<div style="padding:4px 8px;font-size:10px;color:var(--ink-faint);text-align:center;">+${tb.attrs.length-5} kolom lain</div>`:''}
+                    </div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;align-items:center;">
+      <span style="font-size:11px;color:var(--ink-faint);">Scroll horizontal/vertikal jika layar kurang lebar — drag kotak database &amp; tabel.</span>
+      <span style="margin-left:auto;display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" data-db-export-dbml="${escAttr(scope)}">Export DBML</button>
+        <button class="btn btn-ghost btn-sm" data-db-export-sql="${escAttr(scope)}">Export SQL</button>
+      </span>
+    </div>`;
+  }
+  if(view==='manage'){
+    const scope = _scope;
+    const isOverall = scope==='overall';
+    const isEditing = S.dbCodeDraft!==null && S.dbCodeDraft!==undefined;
+    const code = isEditing ? S.dbCodeDraft : generateDBMLForScope(scope);
+    const tabs = [{key:'overall', label:'Keseluruhan', count: stats.tables}, ...DB_MODEL.databases.map(d=>({key:d.name, label:d.name.replace('griya_',''), count:d.tables.length}))];
+    return `
+    <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" data-db-back-databases="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Database</button>
+      <span style="margin-left:auto;font-size:12px;color:var(--ink-faint);">Mode Manage — edit code, Simpan untuk terapkan ke visual</span>
+    </div>
+    <div style="display:flex;gap:8px;overflow-x:auto;padding:6px 2px;margin-bottom:10px;border-bottom:1px solid var(--border);">
+      ${tabs.map(t=>`<button class="btn ${ (scope===t.key?'btn-primary':'btn-secondary')} btn-sm" data-db-manage-scope="${escAttr(t.key)}" style="white-space:nowrap;">${escHtml(t.label)} <span style="opacity:.7;">(${t.count})</span></button>`).join('')}
+    </div>
+    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface);box-shadow:var(--shadow-card);display:flex;flex-direction:column;height:calc(100vh - 260px);min-height:520px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:linear-gradient(180deg, var(--dept-bg) 0%, var(--surface) 100%);border-bottom:1px solid var(--border);">
+        <span style="font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;">${ICONS.database} Code DBML — ${escHtml(isOverall?'Keseluruhan':scope)}</span>
+        ${isEditing ? `<span style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm" data-db-manage-cancel>Batal</button><button class="btn btn-primary btn-sm" data-db-manage-save="${escAttr(scope)}">Simpan</button></span>` : `<button class="btn btn-primary btn-sm" data-db-manage-edit="${escAttr(scope)}">Edit</button>`}
+      </div>
+      ${isEditing ? `<textarea data-db-manage-code="${escAttr(scope)}" spellcheck="false" style="flex:1;width:100%;border:none;padding:14px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:12.5px;line-height:1.7;resize:none;outline:none;background:var(--surface);color:var(--ink);white-space:pre;overflow:auto;">${escHtml(code)}</textarea>` : `<pre style="flex:1;margin:0;padding:14px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:12.5px;line-height:1.7;white-space:pre;overflow:auto;background:var(--surface);color:var(--ink);">${escHtml(code)}</pre>`}
+      <div style="display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--dept-bg);align-items:center;justify-content:flex-end;">
+        <span style="margin-left:auto;display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" data-db-export-dbml="${escAttr(scope)}">Export DBML</button>
+          <button class="btn btn-ghost btn-sm" data-db-export-sql="${escAttr(scope)}">Export SQL</button>
+        </span>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--ink-faint);text-align:center;">Full content — code mengisi penuh, scroll vertikal jika panjang. Simpan akan parse & update visual di Lihat Diagram.</div>`;
+  }
+
+  // default: databases list + 4 cards (view only)
+  return `
+  <div class="page-head" style="margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Database Management</h1>
+      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">${DB_MODEL.type} &bull; ${stats.dbs} database &bull; ${stats.tables} tabel &bull; Strategic Growth & Product &bull; view only</p>
+    </div>
+    <div style="display:inline-flex;gap:8px;align-items:center;margin-top:6px;flex-shrink:0;">
+      <button class="btn btn-secondary" data-db-open-editor="overall" style="width:auto;padding:7px 14px;font-size:13px;border-radius:6px;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow-card);white-space:nowrap;">${ICONS.eye} Lihat Diagram</button>
+      <button class="btn btn-primary" data-db-manage="overall" style="width:auto;padding:7px 14px;font-size:13px;border-radius:6px;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow-card);white-space:nowrap;">${ICONS.edit} Manage</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-card);">
+      <div style="font-size:12px;color:var(--ink-faint);font-weight:600;letter-spacing:.02em;">JUMLAH DATABASE</div>
+      <div style="font-size:28px;font-weight:800;color:var(--primary);margin-top:6px;">${stats.dbs}</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">MySQL schemas</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-card);">
+      <div style="font-size:12px;color:var(--ink-faint);font-weight:600;letter-spacing:.02em;">JUMLAH TABLES</div>
+      <div style="font-size:28px;font-weight:800;color:var(--ink);margin-top:6px;">${stats.tables}</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">77 tabel terdata</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-card);">
+      <div style="font-size:12px;color:var(--ink-faint);font-weight:600;letter-spacing:.02em;">JUMLAH ATTRIBUTES</div>
+      <div style="font-size:28px;font-weight:800;color:var(--ink);margin-top:6px;">${stats.attrs}</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">kolom pada semua tabel</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-card);">
+      <div style="font-size:12px;color:var(--ink-faint);font-weight:600;letter-spacing:.02em;">JUMLAH FOREIGN KEY</div>
+      <div style="font-size:28px;font-weight:800;color:var(--accent);margin-top:6px;">${stats.fks}</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">145 relasi</div>
+    </div>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;min-width:900px;">
+      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Database</th><th style="width:110px;text-align:center;">Tables</th><th style="width:130px;text-align:center;">Attributes</th><th style="width:110px;text-align:center;">FK</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+      <tbody>
+        ${DB_MODEL.databases.map((db,i)=>{
+          const ac = db.tables.reduce((s,t)=>s+t.attrs.length,0);
+          const fc = db.tables.reduce((s,t)=>s+t.fkCols.length,0);
+          return `<tr>
+            <td style="text-align:center;font-weight:600;">${i+1}</td>
+            <td><div style="font-weight:700;color:var(--ink);font-family:monospace;font-size:13.5px;">${escHtml(db.name)}</div><div style="font-size:11px;color:var(--ink-faint);">${db.tables.length} tabel • ${ac} kolom</div></td>
+            <td style="text-align:center;font-weight:700;">${db.tables.length}</td>
+            <td style="text-align:center;">${ac}</td>
+            <td style="text-align:center;">${fc?`<span class="badge badge-lifecycle-pra-release">${fc}</span>`:'0'}</td>
+            <td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-db-view-tables="${escAttr(db.name)}">${ICONS.eye} Detail</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:10px;font-size:12px;color:var(--ink-faint);">Klik <b>Detail</b> untuk melihat daftar tabel (view only). Untuk CRUD (tambah database/tabel/kolom) buka <b>Lihat Diagram</b> — kiri code DBML, kanan ERD.</div>`;
+}
+
+function seedDbProjectsIfEmpty(){
+  if(!S.dbProjectList || !S.dbProjectList.length){
+    S.dbProjectList = [
+      {
+        id: 'dbprj-001',
+        code: 'PRJ-DB-001',
+        name: 'Pengembangan Sistem Branch Kediri',
+        description: 'Perancangan database untuk operasional dan sales cabang Kediri.',
+        dbs: ['griya_company', 'griya_sales'],
+        updated: '01 Sep 2026',
+        updatedBy: 'Budi Santoso'
+      },
+      {
+        id: 'dbprj-002',
+        code: 'PRJ-DB-002',
+        name: 'Portal Pelanggan & Billing',
+        description: 'Model data akun pelanggan, virtual account, dan pembayaran berlangganan.',
+        dbs: ['griya_customers', 'griya_company'],
+        updated: '25 Agu 2026',
+        updatedBy: 'Dewi Sartika'
+      },
+      {
+        id: 'dbprj-003',
+        code: 'PRJ-DB-003',
+        name: 'Sistem Operasional Lapangan & Infra',
+        description: 'Integrasi OLT, router, penarikan kabel, dan work order teknisi.',
+        dbs: ['griya_coverage', 'griya_oprasional', 'griya_warehouse'],
+        updated: '28 Jul 2026',
+        updatedBy: 'Dimas Rantung'
+      }
+    ];
+  }
+}
+
+function renderDatabaseProjectDetailDiagram(prj){
+  const scope = prj.id;
+  const zoom = (S.dbEditorZoomMap && S.dbEditorZoomMap[scope]) ? S.dbEditorZoomMap[scope] : (S.dbEditorZoom || 100);
+
+  const linkedDbs = (typeof DB_MODEL !== 'undefined')
+    ? DB_MODEL.databases.filter(d => (prj.dbs || []).includes(d.name))
+    : [];
+
+  const visualTables = [];
+  linkedDbs.forEach(d => d.tables.forEach(tb => visualTables.push({ db: d.name, tb })));
+
+  if(!S.dbBoxPositions) S.dbBoxPositions={};
+  const dbCols = 2, dbGapX = 24, dbGapY = 24;
+  const baseDbW = 520, baseDbH = 320;
+  linkedDbs.forEach((d, idx) => {
+    if(!S.dbBoxPositions[scope + ':' + d.name]){
+      const col = idx % dbCols, row = Math.floor(idx / dbCols);
+      S.dbBoxPositions[scope + ':' + d.name] = {
+        x: col * (baseDbW + dbGapX),
+        y: row * (baseDbH + dbGapY),
+        w: baseDbW,
+        h: baseDbH + Math.ceil(d.tables.length / 3) * (220 + 14)
+      };
+    }
+  });
+
+  if(!S.dbPositions) S.dbPositions={};
+  if(!S.dbPositions[scope]) S.dbPositions[scope]={};
+  linkedDbs.forEach(d => {
+    const cols = 3, cardW = 220, gapX = 12, cardH = 150, gapY = 12;
+    d.tables.forEach((tb, j) => {
+      const key = tb.full;
+      if(!S.dbPositions[scope][key]){
+        const col = j % cols, row = Math.floor(j / cols);
+        S.dbPositions[scope][key] = { x: 12 + col * (cardW + gapX), y: 44 + row * (cardH + gapY) };
+      }
+    });
+  });
+
+  const visFulls = new Set(visualTables.map(v => v.tb.full));
+  const allRels = (typeof DB_REFS !== 'undefined' ? DB_REFS : []).filter(r => visFulls.has(r.srcDbTbl) && visFulls.has(r.dstDbTbl));
+
+  let maxX = 0, maxY = 0;
+  linkedDbs.forEach(d => {
+    const pos = S.dbBoxPositions[scope + ':' + d.name];
+    if(pos){
+      maxX = Math.max(maxX, pos.x + pos.w);
+      maxY = Math.max(maxY, pos.y + pos.h);
+    }
+  });
+  const canvasW = Math.max(800, maxX + 24), canvasH = Math.max(500, maxY + 24);
+
+  const svgLines = allRels.map(r => {
+    const srcDb = r.srcDbTbl.split('.')[0], dstDb = r.dstDbTbl.split('.')[0];
+    const sDbPos = S.dbBoxPositions[scope + ':' + srcDb], dDbPos = S.dbBoxPositions[scope + ':' + dstDb];
+    const sPos = S.dbPositions[scope][r.srcDbTbl];
+    const tPos = S.dbPositions[scope][r.dstDbTbl];
+    if(!sDbPos || !dDbPos || !sPos || !tPos) return '';
+    const sx = sDbPos.x + sPos.x + 220, sy = sDbPos.y + sPos.y + 18;
+    const tx = dDbPos.x + tPos.x, ty = dDbPos.y + tPos.y + 18;
+    const mx = (sx + tx) / 2;
+    return `<path d="M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ty}, ${tx} ${ty}" stroke="#A9793F" stroke-width="1.6" fill="none" marker-end="url(#dbArrowPrj)" opacity="0.85"/>`;
+  }).join('');
+
+  return `
+  <div style="margin-bottom:12px;">
+    <button class="btn btn-ghost btn-sm" data-back-to-dbproject-list="1" style="padding-left:0; color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar Database Project</button>
+  </div>
+
+  <div class="jd-sticky-top-area" style="position:static; margin:0 0 16px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--surface);">
+    <div class="jd-header-nav">
+      <div></div>
+      <div class="jd-header-actions">
+        <button class="btn btn-secondary btn-sm" data-edit-dbproject="${prj.id}">${ICONS.edit} Ubah Project</button>
+      </div>
+    </div>
+    <div class="jd-header-main">
+      <div class="jd-header-title-row">
+        <h1 class="jd-header-title">[${escHtml(prj.code)}] ${escHtml(prj.name)}</h1>
+        <span class="badge badge-lifecycle-release">View Only Diagram</span>
+      </div>
+      <div class="jd-header-meta">
+        <div class="jd-org-trail">
+          <span class="jd-org-item">Database Terkait:</span>
+          ${(prj.dbs || []).map(d => `<span class="badge badge-division" style="margin-right:4px; font-family:monospace;">${escHtml(d)}</span>`).join('')}
+        </div>
+        <div class="jd-meta-pills">
+          <span class="jd-pill"><span class="jd-pill-label">Total Tabel</span><span class="jd-pill-val">${visualTables.length}</span></span>
+          <span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">${escHtml(prj.updated || '-')}</span></span>
+        </div>
+      </div>
+      ${prj.description ? `<div style="font-size:13px; color:var(--ink-soft); margin-top:8px;">${escHtml(prj.description)}</div>` : ''}
+    </div>
+  </div>
+
+  <div style="border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--dept-bg); overflow:hidden; box-shadow:var(--shadow-card);">
+    <div style="display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:3;">
+      <span style="font-weight:700; font-size:13px;">Visual ERD Project — ${escHtml(prj.name)} (${linkedDbs.length} DB, ${visualTables.length} Tabel)</span>
+      <span style="font-size:11px; color:var(--ink-faint);">drag kotak database &amp; tabel — view only</span>
+      <span style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+        <button class="btn btn-ghost btn-sm" data-db-auto-layout="${escAttr(scope)}" title="Rapikan otomatis">⟲ Auto Layout</button>
+        <button class="btn btn-ghost btn-sm" data-db-zoom="-10" data-zoom-scope="${escAttr(scope)}">−</button>
+        <span style="font-size:12px; min-width:42px; text-align:center;">${zoom}%</span>
+        <button class="btn btn-ghost btn-sm" data-db-zoom="10" data-zoom-scope="${escAttr(scope)}">+</button>
+      </span>
+    </div>
+    <div style="overflow:auto; max-height:calc(100vh - 260px); background:var(--dept-bg); position:relative;">
+      <div style="position:relative; width:${canvasW}px; height:${canvasH}px; zoom:${zoom}%; margin:12px;">
+        <svg style="position:absolute; inset:0; width:${canvasW}px; height:${canvasH}px; pointer-events:none; z-index:1;" width="${canvasW}" height="${canvasH}">
+          <defs><marker id="dbArrowPrj" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#A9793F"/></marker></defs>
+          ${svgLines}
+        </svg>
+        ${linkedDbs.map(d => {
+          const pos = S.dbBoxPositions[scope + ':' + d.name] || { x: 0, y: 0, w: 520, h: 320 };
+          const tables = d.tables;
+          return `
+          <div data-db-box="${escAttr(scope + ':' + d.name)}" style="position:absolute; left:${pos.x}px; top:${pos.y}px; width:${pos.w}px; height:${pos.h}px; background:var(--surface); border:2px solid var(--primary); border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(20,24,34,.12); z-index:2; display:flex; flex-direction:column;">
+            <div data-db-box-drag="${escAttr(scope + ':' + d.name)}" style="padding:8px 12px; background:linear-gradient(135deg, var(--primary) 0%, #1D3352 100%); color:#fff; font-weight:700; font-size:12px; display:flex; align-items:center; gap:8px; cursor:grab; user-select:none; flex-shrink:0;">
+              <span style="cursor:grab;">⠿</span><span style="font-family:monospace;">${escHtml(d.name)}</span>
+              <span style="font-size:11px; opacity:.85; background:rgba(255,255,255,.18); padding:2px 6px; border-radius:999px;">${d.peruntukan ? (Array.isArray(d.peruntukan) ? d.peruntukan.join(' • ') : d.peruntukan) : ''}</span>
+              <span style="margin-left:auto; font-size:11px; opacity:.85;">${tables.length} tabel</span>
+            </div>
+            <div style="flex:1; position:relative; overflow:hidden; background:var(--dept-bg);">
+              ${tables.map(tb => {
+                const tPos = S.dbPositions[scope][tb.full] || { x: 12, y: 44 };
+                return `
+                <div data-db-card="${escAttr(scope + ':' + tb.full)}" style="position:absolute; left:${tPos.x}px; top:${tPos.y}px; width:220px; background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(20,24,34,.06); z-index:2;">
+                  <div data-db-drag-handle="${escAttr(scope + ':' + tb.full)}" style="background:var(--surface-raised); color:var(--ink); padding:6px 8px; font-weight:700; font-size:11px; display:flex; align-items:center; gap:6px; cursor:grab; user-select:none; border-bottom:1px solid var(--border);">
+                    <span style="cursor:grab;">⠿</span><span style="font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${escHtml(tb.name)}</span>
+                  </div>
+                  <div style="max-height:110px; overflow:auto;">
+                    ${tb.attrs.slice(0, 5).map(c => `
+                      <div style="display:flex; align-items:center; gap:4px; padding:3px 8px; font-size:10px; font-family:monospace; border-bottom:1px solid var(--border);">
+                        <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(c.name)}</span>
+                        <span style="color:var(--ink-faint); font-size:9px;">${escHtml(c.type)}</span>
+                        ${c.pk ? '<span class="badge badge-division" style="font-size:8px; padding:1px 3px;">PK</span>' : ''}
+                        ${c.fk ? '<span class="badge badge-lifecycle-pra-release" style="font-size:8px; padding:1px 3px;">FK</span>' : ''}
+                      </div>
+                    `).join('')}
+                    ${tb.attrs.length > 5 ? `<div style="padding:4px 8px; font-size:10px; color:var(--ink-faint); text-align:center;">+${tb.attrs.length - 5} kolom lain</div>` : ''}
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:8px; font-size:11px; color:var(--ink-faint); text-align:center;">
+    View only — diagram khusus untuk proyek <b>${escHtml(prj.name)}</b>. Tidak ada editor kode di modul Database Project.
+  </div>
+  `;
+}
+
+function renderDatabaseProjectPage() {
+  seedDbProjectsIfEmpty();
+
+  if (S.dbProjectDetailId) {
+    const prj = (S.dbProjectList || []).find(x => x.id === S.dbProjectDetailId);
+    if (!prj) {
+      return `<div class="empty-state"><p>Project tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-dbproject-list="1">Kembali</button></div>`;
+    }
+    return renderDatabaseProjectDetailDiagram(prj);
+  }
+
+  const q = (S.dbProjectSearch || '').toLowerCase().trim();
+  const list = S.dbProjectList || [];
+  const filtered = list.filter(p => {
+    if (q) {
+      const hay = ((p.name || '') + ' ' + (p.code || '') + ' ' + (p.description || '') + ' ' + (p.dbs || []).join(' ')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  return `
+  <div class="page-head" style="margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:22px; font-weight:700; margin:0 0 4px;">Database Project</h1>
+      <p style="margin:0; font-size:13.5px; color:var(--ink-soft);">
+        Manajemen &amp; pengorganisasian database berdasarkan kebutuhan proyek &bull; Strategic Growth &amp; Product
+      </p>
+    </div>
+    <button class="btn btn-primary" data-add-dbproject="1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Tambah Project
+    </button>
+  </div>
+
+  <div class="pm-toolbar" style="margin-bottom:16px;">
+    <div class="pm-filters">
+      <div class="search-box pm-search" style="min-width:260px;">
+        <input type="text" id="dbprj-search-input" placeholder="Cari nama project, kode, database..." value="${escAttr(S.dbProjectSearch || '')}">
+      </div>
+    </div>
+    <div style="font-size:12.5px; color:var(--ink-faint);">
+      Menampilkan <b>${filtered.length}</b> dari ${list.length} project
+    </div>
+  </div>
+
+  <div style="overflow-x:auto; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none; border-radius:0; min-width:900px;">
+      <thead>
+        <tr>
+          <th style="width:45px; text-align:center;">No</th>
+          <th>Nama Project</th>
+          <th style="width:130px;">Kode Project</th>
+          <th style="min-width:220px;">Database Terkait</th>
+          <th style="width:110px; text-align:center;">Total Tabel</th>
+          <th style="width:150px;">Last Update</th>
+          <th style="width:130px; text-align:right;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filtered.map((p, i) => {
+          const linkedDbs = (typeof DB_MODEL !== 'undefined')
+            ? DB_MODEL.databases.filter(d => (p.dbs || []).includes(d.name))
+            : [];
+          const totalTables = linkedDbs.reduce((sum, d) => sum + d.tables.length, 0);
+
+          return `
+          <tr>
+            <td style="text-align:center; font-weight:600;">${i + 1}</td>
+            <td>
+              <div style="font-weight:600; color:var(--ink); cursor:pointer;" data-view-dbproject="${p.id}">${escHtml(p.name)}</div>
+              ${p.description ? `<div style="font-size:11.5px; color:var(--ink-soft); max-width:380px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(p.description)}</div>` : ''}
+            </td>
+            <td style="font-family:monospace; font-weight:600; color:var(--primary);">${escHtml(p.code)}</td>
+            <td>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                ${(p.dbs || []).map(dbName => `<span class="badge badge-division" style="font-family:monospace; font-size:11px;">${escHtml(dbName)}</span>`).join('')}
+              </div>
+            </td>
+            <td style="text-align:center; font-weight:700;">${totalTables}</td>
+            <td style="font-size:12px; color:var(--ink-soft);">${escHtml(p.updated || '-')}</td>
+            <td style="text-align:right; position:relative;">
+              <div style="display:inline-flex; gap:4px;">
+                <button class="btn btn-secondary btn-sm" style="padding:4px 8px; font-size:11.5px;" data-view-dbproject="${p.id}">${ICONS.eye} Lihat Diagram</button>
+                <button class="kebab-btn" data-kebab="dbproject:${p.id}">${ICONS.kebab}</button>
+              </div>
+              ${kebabOpen('dbproject', p.id) ? `
+              <div class="kebab-menu" style="right:14px;">
+                <button data-view-dbproject="${p.id}">${ICONS.eye} Lihat Diagram</button>
+                <button data-edit-dbproject="${p.id}">${ICONS.edit} Ubah Project</button>
+                <button class="danger" data-delete-dbproject="${p.id}">${ICONS.trash} Hapus Project</button>
+              </div>` : ''}
+            </td>
+          </tr>`;
+        }).join('')}
+        ${!filtered.length ? `<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--ink-faint);">Tidak ada project yang sesuai filter.</td></tr>` : ''}
+      </tbody>
+    </table>
+  </div>
+  `;
+}
+function renderQueryManagementPage(){
+  return `
+  <div class="page-head" style="margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Query Management</h1>
+      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Eksekusi &amp; pustaka query SQL &bull; Strategic Growth & Product</p>
+    </div>
+  </div>
+  <div class="placeholder-panel">
+    <div class="icon">${ICONS.fileText}</div>
+    <h3>Coming Soon</h3>
+    <p>Modul Query Management sedang dalam tahap penyusunan dan akan segera tersedia pada rilis berikutnya.</p>
+  </div>`;
+}
+
 function renderApp(){
   return `
   <div data-theme="${S.theme}" style="height: 100%;">
@@ -330,6 +1126,11 @@ function renderApp(){
         ${S.page==='sop-detail' ? renderSopDetailPage() : ''}
         ${S.page==='technical-handbook' ? renderHandbookPage() : ''}
         ${S.page==='technical-handbook-detail' ? renderHandbookDetailPage() : ''}
+        ${S.page==='knowledge-base' ? renderKbPage() : ''}
+        ${S.page==='knowledge-base-detail' ? renderKbDetailPage() : ''}
+        ${S.page==='database-management' ? renderDatabasePage() : ''}
+        ${S.page==='database-project' ? renderDatabaseProjectPage() : ''}
+        ${S.page==='query-management' ? renderQueryManagementPage() : ''}
         ${S.page==='placeholder' ? renderPlaceholderPage() : ''}
       </div>
     </div>
@@ -347,7 +1148,7 @@ function renderSidebar(){
         { key: "job-description", label: "Role Charter / Job Description", desc: "Tanggung jawab dan kewenangan", icon: "building", real: true },
         { key: "sop", label: "SOP", desc: "Alur proses kerja", icon: "fileText", real: true },
         { key: "technical-handbook", label: "Technical Handbook", desc: "Metode teknis dan cara penerapan", icon: "book", real: true },
-        { key: "knowledge-base", label: "Knowledge Base", desc: "Materi keilmuan, konsep, teori, referensi", icon: "search", real: false },
+        { key: "knowledge-base", label: "Knowledge Base", desc: "Materi keilmuan, konsep, teori, referensi", icon: "search", real: true },
         { key: "forms-records", label: "Forms & Records", desc: "Bukti pelaksanaan", icon: "edit", real: false }
       ]
     },
@@ -355,7 +1156,10 @@ function renderSidebar(){
       group: "Strategic Growth & Product",
       items: [
         { key: "open-branch", label: "Open Branch", desc: "Monitoring pembukaan cabang", icon: "location", real: true },
-        { key: "kuartal", label: "Kuartal", desc: "Pencapaian branch & target", icon: "inbox", real: true }
+        { key: "kuartal", label: "Kuartal", desc: "Pencapaian branch & target", icon: "inbox", real: true },
+        { key: "database-management", label: "Database Management", desc: "Kelola database & data master", icon: "database", real: true },
+        { key: "database-project", label: "Database Project", desc: "Manajemen & perancangan database proyek", icon: "database", real: true },
+        { key: "query-management", label: "Query Management", desc: "Eksekusi & pustaka query SQL", icon: "fileText", real: true }
       ]
     },
     {
@@ -381,9 +1185,13 @@ function renderSidebar(){
   const isActive = k => {
     if(S.page.startsWith('job-description')) return k === 'job-description' || k === 'role-charter';
     if(S.page.startsWith('governance-quality-manual')) return k === 'governance-quality-manual';
-    if(S.page.startsWith('sop')) return k === 'sop';
+    if(S.page==='sop' || S.page==='sop-detail') return k === 'sop';
     if(S.page.startsWith('technical-handbook')) return k === 'technical-handbook';
+    if(S.page.startsWith('knowledge-base')) return k === 'knowledge-base';
     if(S.page.startsWith('open-branch')) return k === 'open-branch';
+    if(S.page === 'database-management') return k === 'database-management';
+    if(S.page === 'database-project') return k === 'database-project';
+    if(S.page === 'query-management') return k === 'query-management';
     if(S.page === 'project-management') return k === 'project-management';
     if(S.page === 'schedule-management') return k === 'schedule-management';
     if(S.page === 'kuartal') return k === 'kuartal';
@@ -433,6 +1241,9 @@ function renderHeader(){
     "sop-detail":"SOP",
     "technical-handbook":"Technical Handbook",
     "technical-handbook-detail":"Technical Handbook",
+    "knowledge-base":"Knowledge Base",
+    "knowledge-base-detail":"Knowledge Base",
+    "database-management":"Database Management",
     "open-branch":"Open Branch",
     "open-branch-detail":"Open Branch",
     "open-branch-monitor":"Open Branch",
@@ -3885,102 +4696,124 @@ function repeatableListEditor(pathBase, items, addLabel){
 function renderModal(){
   const m = S.modal;
 
-  // ===== Dokumen: Manual / SOP / Handbook (tanpa kolom link) =====
+  if(m.kind==='addDbProject' || m.kind==='editDbProject'){
+    const isEdit=m.kind==='editDbProject';
+    const prj=isEdit?(S.dbProjectList||[]).find(x=>x.id===m.id):{code:'PRJ-DB-'+Math.floor(100+Math.random()*900), name:'', description:'', dbs:['griya_company']};
+    const allDbs=(typeof DB_MODEL!=='undefined'?DB_MODEL.databases:[]);
+    return modalShell(isEdit?'Ubah Database Project':'Tambah Database Project Baru', `
+      <div class="modal-context">Kelola pemetaan database yang dibutuhkan oleh proyek ini.</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field"><label>Kode Project*</label><input class="modal-inp" id="dbprj-code" value="${escAttr(prj.code||'')}"></div>
+          <div class="field"><label>Nama Project*</label><input class="modal-inp" id="dbprj-name" value="${escAttr(prj.name||'')}" placeholder="mis. Pengembangan Sistem Branch Kediri"></div>
+        </div>
+        <div class="field"><label>Deskripsi Project</label><textarea id="dbprj-desc" style="min-height:70px;">${escHtml(prj.description||'')}</textarea></div>
+        <div class="field">
+          <label style="margin-bottom:8px;display:block;font-weight:600;">Pilih Database Terkait*</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:180px;overflow-y:auto;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--dept-bg);">
+            ${allDbs.map(d=>{
+              const checked=(prj.dbs||[]).includes(d.name)?'checked':'';
+              return `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" name="dbprj-db-check" value="${escAttr(d.name)}" ${checked}>
+                <span><b>${escHtml(d.name)}</b> <span style="font-size:11px;color:var(--ink-faint);">(${d.tables.length} tabel)</span></span>
+              </label>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-dbproject="${isEdit?prj.id:''}">Simpan Project</button>`, true);
+  }
+  if(m.kind==='deleteDbProject'){
+    const prj=(S.dbProjectList||[]).find(x=>x.id===m.id);
+    return modalShell('Hapus Database Project?', `<p style="font-size:14px;margin:0;">Apakah Anda yakin ingin menghapus project <b>${escHtml(prj?prj.name:'')}</b> (${escHtml(prj?prj.code:'')})?</p><div class="delete-warning">Catatan: Data database asli tidak akan terhapus, hanya pemetaan project ini yang dihapus.</div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-dbproject="${m.id}">${ICONS.trash} Hapus</button>`);
+  }
+
   if(m.kind==='addManual' || m.kind==='editManual'){
     const isEdit=m.kind==='editManual';
-    const d=isEdit ? (S.manuals||[]).find(x=>x.id===m.id) : {code:'MM-'+Math.floor(100+Math.random()*900), name:'', directorateId:(S.directorates[0]||{}).id||'ALL', version:'v1.0', status:'Draft', purpose:'', scope:'', content:''};
-    const dirs=S.directorates||[];
-    return modalShell(isEdit?'Ubah Dokumen Manual Mutu':'Tambah Dokumen Manual Mutu', `
-      <div class="modal-context">Dokumen dibuat dan dikelola di web ini. <b>Tidak ada kolom link.</b></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="field"><label>Nama Dokumen*</label><input class="modal-inp" id="doc-mm-name" value="${escAttr(d.name)}" placeholder="mis. Manual Mutu Open Branch"></div>
-        <div class="field"><label>Kode*</label><input class="modal-inp" id="doc-mm-code" value="${escAttr(d.code)}"></div>
-        <div class="field"><label>Direktorat*</label><select id="doc-mm-dir" class="modal-inp">${dirs.map(x=>`<option value="${escAttr(x.id)}" ${d.directorateId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Status</label><select id="doc-mm-status" class="modal-inp"><option ${d.status==='Draft'?'selected':''}>Draft</option><option ${d.status==='Review'?'selected':''}>Review</option><option ${d.status==='Berlaku'?'selected':''}>Berlaku</option><option ${d.status==='Obsolete'?'selected':''}>Obsolete</option></select></div>
-        <div class="field"><label>Versi</label><input class="modal-inp" id="doc-mm-version" value="${escAttr(d.version||'v1.0')}"></div>
-        <div class="field"><label>Update Terakhir</label><input class="modal-inp" id="doc-mm-updated" value="${escAttr(d.updated||'')}" placeholder="mis. 01 Sep 2026"></div>
-        <div class="field" style="grid-column:1/-1;"><label>Tujuan</label><textarea id="doc-mm-purpose" style="min-height:60px;">${escHtml(d.purpose||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Ruang Lingkup</label><textarea id="doc-mm-scope" style="min-height:60px;">${escHtml(d.scope||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Isi Dokumen</label><textarea id="doc-mm-content" style="min-height:120px;">${escHtml(d.content||'')}</textarea></div>
-      </div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-manual="${isEdit?m.id:''}">Simpan</button>`, true);
+    const d=isEdit?(S.manuals||[]).find(x=>x.id===m.id):{code:'MM-'+Math.floor(100+Math.random()*900), version:'v1.0', status:'Draft', updated:''};
+    return modalShell(isEdit?'Ubah Info Dokumen':'Tambah Dokumen Manual Mutu', '<div class="modal-context">Hanya metadata. Isi bab dikelola dari tampilan docx editor.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>No.Dokumen*</label><input class="modal-inp" id="doc-mm-code" value="'+escAttr(d.code)+'"></div><div class="field"><label>Versi</label><input class="modal-inp" id="doc-mm-version" value="'+escAttr(d.version||'v1.0')+'"></div><div class="field"><label>Status</label><select id="doc-mm-status" class="modal-inp"><option '+(d.status==='Draft'?'selected':'')+'>Draft</option><option '+(d.status==='Review'?'selected':'')+'>Review</option><option '+(d.status==='Berlaku'?'selected':'')+'>Berlaku</option><option '+(d.status==='Obsolete'?'selected':'')+'>Obsolete</option></select></div><div class="field"><label>Last Update</label><input class="modal-inp" id="doc-mm-updated" value="'+escAttr(d.updated||'')+'" placeholder="mis. 01 Sep 2026"></div>'+(isEdit?'':'<div class="field" style="grid-column:1/-1;"><label>Nama Dokumen*</label><input class="modal-inp" id="doc-mm-name" placeholder="mis. Manual Mutu Open Branch"></div><div class="field" style="grid-column:1/-1;"><label>Direktorat*</label><select id="doc-mm-dir" class="modal-inp">'+(S.directorates||[]).map(x=>'<option value="'+escAttr(x.id)+'">'+escHtml(x.name)+'</option>').join('')+'</select></div>')+'</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-manual="'+(isEdit?m.id:'')+'">Simpan</button>', true);
   }
   if(m.kind==='deleteManual'){
     const d=(S.manuals||[]).find(x=>x.id===m.id);
-    return modalShell('Hapus Dokumen?', `<p style="font-size:14px;margin:0;">Hapus <b>${escHtml(d?d.name:'')}</b> (${escHtml(d?d.code:'')}) secara permanen?</p><div class="delete-warning">Dokumen yang sudah Berlaku sebaiknya dijadikan Obsolete, bukan dihapus.</div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-manual="${m.id}">${ICONS.trash} Hapus</button>`);
+    return modalShell('Hapus Dokumen?', '<p>Hapus <b>'+escHtml(d?d.name:'')+'</b> ('+escHtml(d?d.code:'')+')?</p>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-manual="'+m.id+'">Hapus</button>');
   }
   if(m.kind==='addSop' || m.kind==='editSop'){
     const isEdit=m.kind==='editSop';
-    const d=isEdit ? (S.sops||[]).find(x=>x.id===m.id) : {code:'SOP-'+Math.floor(100+Math.random()*900), name:'', directorateId:(S.directorates[0]||{}).id||'ALL', divisionId:'', departmentId:'', version:'v1.0', status:'Draft', pic:'', purpose:'', scope:'', reference:'', definitions:'', detailProses:'', communication:'', steps:''};
-    const dirs=S.directorates||[];
-    let divs=docDivisions(d.directorateId);
-    let deps=d.divisionId ? docDepartments(d.divisionId) : [];
-    return modalShell(isEdit?'Ubah SOP':'Buat SOP Baru', `
-      <div class="modal-context">Isi info dasar dulu. Untuk menggambar flowchart gunakan <b>Edit di draw.io</b> dari daftar. Hasilnya tersimpan sebagai <b>gambar embed</b> di web, bukan link. Isi dokumen mengikuti urutan: Penjelasan Umum > Detail Proses > Proses Komunikasi.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="field"><label>Nama SOP*</label><input class="modal-inp" id="doc-sop-name" value="${escAttr(d.name)}" placeholder="mis. SOP Survey Lokasi POP ODC"></div>
-        <div class="field"><label>Kode*</label><input class="modal-inp" id="doc-sop-code" value="${escAttr(d.code)}"></div>
-        <div class="field"><label>Direktorat*</label><select id="doc-sop-dir" class="modal-inp">${dirs.map(x=>`<option value="${escAttr(x.id)}" ${d.directorateId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Divisi</label><select id="doc-sop-div" class="modal-inp"><option value="">-- Pilih --</option>${divs.map(x=>`<option value="${escAttr(x.id)}" ${d.divisionId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Departemen</label><select id="doc-sop-dept" class="modal-inp"><option value="">-- Pilih --</option>${deps.map(x=>`<option value="${escAttr(x.id)}" ${d.departmentId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>PIC Pelaksana</label><input class="modal-inp" id="doc-sop-pic" value="${escAttr(d.pic||'')}" placeholder="mis. Surveyor"></div>
-        <div class="field"><label>Versi</label><input class="modal-inp" id="doc-sop-version" value="${escAttr(d.version||'v1.0')}"></div>
-        <div class="field"><label>Status</label><select id="doc-sop-status" class="modal-inp"><option ${d.status==='Draft'?'selected':''}>Draft</option><option ${d.status==='Review'?'selected':''}>Review</option><option ${d.status==='Berlaku'?'selected':''}>Berlaku</option><option ${d.status==='Obsolete'?'selected':''}>Obsolete</option></select></div>
-        <div class="field" style="grid-column:1/-1;"><label>Maksud dan Tujuan</label><textarea id="doc-sop-purpose" style="min-height:60px;">${escHtml(d.purpose||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Ruang Lingkup</label><textarea id="doc-sop-scope" style="min-height:60px;">${escHtml(d.scope||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Referensi</label><textarea id="doc-sop-reference" style="min-height:60px;">${escHtml(d.reference||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Definisi Istilah</label><textarea id="doc-sop-definitions" style="min-height:60px;">${escHtml(d.definitions||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Detail Proses</label><textarea id="doc-sop-detailproses" style="min-height:100px;">${escHtml(d.detailProses||d.steps||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Proses Komunikasi</label><textarea id="doc-sop-communication" style="min-height:80px;">${escHtml(d.communication||'')}</textarea></div>
-      </div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-sop="${isEdit?m.id:''}">Simpan</button>`, true);
+    const d=isEdit?(S.sops||[]).find(x=>x.id===m.id):{code:'SOP-'+Math.floor(100+Math.random()*900), version:'v1.0', status:'Draft', updated:''};
+    return modalShell(isEdit?'Ubah Info SOP':'Buat SOP Baru', '<div class="modal-context">Hanya No.Dokumen / versi / status / last update. Flowchart via <b>Edit di draw.io</b>.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>No.Dokumen*</label><input class="modal-inp" id="doc-sop-code" value="'+escAttr(d.code)+'"></div><div class="field"><label>Versi</label><input class="modal-inp" id="doc-sop-version" value="'+escAttr(d.version||'v1.0')+'"></div><div class="field"><label>Status</label><select id="doc-sop-status" class="modal-inp"><option '+(d.status==='Draft'?'selected':'')+'>Draft</option><option '+(d.status==='Review'?'selected':'')+'>Review</option><option '+(d.status==='Berlaku'?'selected':'')+'>Berlaku</option><option '+(d.status==='Obsolete'?'selected':'')+'>Obsolete</option></select></div><div class="field"><label>Last Update</label><input class="modal-inp" id="doc-sop-updated" value="'+escAttr(d.updated||'')+'"></div>'+(isEdit?'':'<div class="field" style="grid-column:1/-1;"><label>Nama SOP*</label><input class="modal-inp" id="doc-sop-name"></div><div class="field"><label>Direktorat*</label><select id="doc-sop-dir" class="modal-inp">'+(S.directorates||[]).map(x=>'<option value="'+escAttr(x.id)+'">'+escHtml(x.name)+'</option>').join('')+'</select></div><div class="field"><label>Divisi</label><select id="doc-sop-div" class="modal-inp"><option value="">-- Pilih --</option></select></div>')+'</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-sop="'+(isEdit?m.id:'')+'">Simpan</button>', true);
   }
   if(m.kind==='deleteSop'){
     const d=(S.sops||[]).find(x=>x.id===m.id);
-    return modalShell('Hapus SOP?', `<div style="display:flex;gap:12px;align-items:center;"><img src="${d&&d.preview?d.preview:sopFlowchartSVG(d?d.code:'',d?d.name:'')}" style="width:120px;height:70px;object-fit:cover;border:1px solid var(--border);border-radius:6px;background:#fff;"><p style="font-size:14px;margin:0;">Hapus <b>${escHtml(d?d.name:'')}</b> (${escHtml(d?d.code:'')})? Flowchart ikut terhapus.</p></div><div class="delete-warning">SOP Berlaku sebaiknya Diarsipkan (Obsolete), bukan dihapus.</div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-sop="${m.id}">${ICONS.trash} Hapus</button>`);
+    return modalShell('Hapus SOP?', '<p>Hapus <b>'+escHtml(d?d.name:'')+'</b>?</p>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-sop="'+m.id+'">Hapus</button>');
   }
   if(m.kind==='addHandbook' || m.kind==='editHandbook'){
     const isEdit=m.kind==='editHandbook';
-    const d=isEdit ? (S.handbooks||[]).find(x=>x.id===m.id) : {code:'THB-'+Math.floor(100+Math.random()*900), name:'', category:'Fiber Optik', directorateId:(S.directorates[0]||{}).id||'ALL', divisionId:'', departmentId:'', version:'v1.0', status:'Berlaku', summary:'', tools:'', spec:'', steps:''};
-    const dirs=S.directorates||[];
-    let divs=docDivisions(d.directorateId);
-    let deps=d.divisionId ? docDepartments(d.divisionId) : [];
-    return modalShell(isEdit?'Ubah Handbook':'Tambah Handbook', `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="field"><label>Judul Handbook*</label><input class="modal-inp" id="doc-thb-name" value="${escAttr(d.name)}" placeholder="mis. Cara Uji Loss dengan OTDR"></div>
-        <div class="field"><label>Kode*</label><input class="modal-inp" id="doc-thb-code" value="${escAttr(d.code)}"></div>
-        <div class="field"><label>Kategori</label><select id="doc-thb-cat" class="modal-inp">${['Fiber Optik','ODC','Tiang','Survey','Route','Fasum','Safety','Alat Ukur'].map(c=>`<option ${d.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
-        <div class="field"><label>Versi</label><input class="modal-inp" id="doc-thb-version" value="${escAttr(d.version||'v1.0')}"></div>
-        <div class="field"><label>Direktorat*</label><select id="doc-thb-dir" class="modal-inp">${dirs.map(x=>`<option value="${escAttr(x.id)}" ${d.directorateId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Divisi</label><select id="doc-thb-div" class="modal-inp"><option value="">-- Pilih --</option>${divs.map(x=>`<option value="${escAttr(x.id)}" ${d.divisionId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Departemen</label><select id="doc-thb-dept" class="modal-inp"><option value="">-- Pilih --</option>${deps.map(x=>`<option value="${escAttr(x.id)}" ${d.departmentId===x.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Status</label><select id="doc-thb-status" class="modal-inp"><option ${d.status==='Draft'?'selected':''}>Draft</option><option ${d.status==='Review'?'selected':''}>Review</option><option ${d.status==='Berlaku'?'selected':''}>Berlaku</option><option ${d.status==='Obsolete'?'selected':''}>Obsolete</option></select></div>
-        <div class="field" style="grid-column:1/-1;"><label>Ringkasan</label><textarea id="doc-thb-summary" style="min-height:60px;">${escHtml(d.summary||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Alat & Bahan</label><textarea id="doc-thb-tools" style="min-height:60px;">${escHtml(d.tools||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Spesifikasi</label><textarea id="doc-thb-spec" style="min-height:60px;">${escHtml(d.spec||'')}</textarea></div>
-        <div class="field" style="grid-column:1/-1;"><label>Langkah Kerja</label><textarea id="doc-thb-steps" style="min-height:100px;">${escHtml(d.steps||'')}</textarea></div>
-      </div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-handbook="${isEdit?m.id:''}">Simpan</button>`, true);
+    const d=isEdit?(S.handbooks||[]).find(x=>x.id===m.id):{code:'THB-'+Math.floor(100+Math.random()*900), kategori:'Operasional', peruntukan:'', version:'v1.0', status:'Berlaku', updated:''};
+    return modalShell(isEdit?'Ubah Handbook':'Tambah Handbook', '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>No.Dokumen*</label><input class="modal-inp" id="doc-thb-code" value="'+escAttr(d.code)+'"></div><div class="field"><label>Kategori*</label><select id="doc-thb-kategori" class="modal-inp"><option '+(d.kategori==='Operasional'?'selected':'')+'>Operasional</option><option '+(d.kategori==='IT'?'selected':'')+'>IT</option></select></div><div class="field" style="grid-column:1/-1;"><label>Peruntukan*</label><input class="modal-inp" id="doc-thb-peruntukan" value="'+escAttr(d.peruntukan||d.category||'')+'" placeholder="mis. Sistem HRIS, Sistem SPVR"></div><div class="field"><label>Versi</label><input class="modal-inp" id="doc-thb-version" value="'+escAttr(d.version||'v1.0')+'"></div><div class="field"><label>Status</label><select id="doc-thb-status" class="modal-inp"><option '+(d.status==='Draft'?'selected':'')+'>Draft</option><option '+(d.status==='Berlaku'?'selected':'')+'>Berlaku</option><option '+(d.status==='Obsolete'?'selected':'')+'>Obsolete</option></select></div><div class="field"><label>Last Update</label><input class="modal-inp" id="doc-thb-updated" value="'+escAttr(d.updated||'')+'"></div>'+(isEdit?'':'<div class="field" style="grid-column:1/-1;"><label>Judul*</label><input class="modal-inp" id="doc-thb-name"></div>')+'</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-handbook="'+(isEdit?m.id:'')+'">Simpan</button>', true);
   }
   if(m.kind==='deleteHandbook'){
-    const d=(S.handbooks||[]).find(x=>x.id===m.id);
-    return modalShell('Hapus Handbook?', `<p style="font-size:14px;margin:0;">Hapus <b>${escHtml(d?d.name:'')}</b> (${escHtml(d?d.code:'')}) secara permanen?</p>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-handbook="${m.id}">${ICONS.trash} Hapus</button>`);
+    return modalShell('Hapus Handbook?', '<p>Hapus dokumen ini?</p>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-handbook="'+m.id+'">Hapus</button>');
+  }
+  if(m.kind==='addKb' || m.kind==='editKb'){
+    const isEdit=m.kind==='editKb';
+    const d=isEdit?(S.kbs||[]).find(x=>x.id===m.id):{code:'KB-'+Math.floor(100+Math.random()*900), version:'v1.0', status:'Draft', updated:''};
+    return modalShell(isEdit?'Ubah Info Knowledge Base':'Tambah Knowledge Base', '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>No.Dokumen*</label><input class="modal-inp" id="doc-kb-code" value="'+escAttr(d.code)+'"></div><div class="field"><label>Versi</label><input class="modal-inp" id="doc-kb-version" value="'+escAttr(d.version||'v1.0')+'"></div><div class="field"><label>Status</label><select id="doc-kb-status" class="modal-inp"><option '+(d.status==='Draft'?'selected':'')+'>Draft</option><option '+(d.status==='Review'?'selected':'')+'>Review</option><option '+(d.status==='Berlaku'?'selected':'')+'>Berlaku</option><option '+(d.status==='Obsolete'?'selected':'')+'>Obsolete</option></select></div><div class="field"><label>Last Update</label><input class="modal-inp" id="doc-kb-updated" value="'+escAttr(d.updated||'')+'"></div>'+(isEdit?'':'<div class="field" style="grid-column:1/-1;"><label>Judul*</label><input class="modal-inp" id="doc-kb-name"></div>')+'</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-kb="'+(isEdit?m.id:'')+'">Simpan</button>', true);
+  }
+  if(m.kind==='deleteKb'){
+    return modalShell('Hapus Dokumen?', '<p>Hapus dokumen knowledge base ini?</p>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-kb="'+m.id+'">Hapus</button>');
   }
   if(m.kind==='addChapter' || m.kind==='editChapter'){
     const isEdit=m.kind==='editChapter';
     var doc=null;
     if(m.docType==='manual') doc=(S.manuals||[]).find(function(x){return x.id===m.docId;});
     else if(m.docType==='sop') doc=(S.sops||[]).find(function(x){return x.id===m.docId;});
-    else doc=(S.handbooks||[]).find(function(x){return x.id===m.docId;});
-    var ch=isEdit && doc ? (doc.chapters||[]).find(function(c){return c.id===m.chapId;}) : {title:'', content:''};
-    var lockedFormat=(m.docType==='sop' || m.docType==='handbook');
-    var isPendahuluan=isEdit && ((ch.title||'').toLowerCase()==='pendahuluan');
-    var lockTitle=isPendahuluan || (isEdit && lockedFormat);
-    return modalShell(isEdit?(lockedFormat?'Ubah Isi Bab':'Ubah Bab'):'Tambah Bab', `
-      <div class="modal-context">Dokumen: <b>${escHtml(doc?doc.name:'')}</b>${lockTitle?'<br>Judul bab dikunci (format pasti). Isi boleh diubah.':(isPendahuluan?'<br>Bab <b>Pendahuluan</b> wajib ada. Judul dikunci, isi boleh diubah.':'')}</div>
-      <div class="field"><label>Judul Bab*</label><input class="modal-inp" id="doc-chap-title" value="${escAttr(ch.title||'')}" ${lockTitle?'disabled':''} placeholder="mis. Ruang Lingkup, Detail Proses"></div>
-      <div class="field"><label>Isi Bab*</label><textarea id="doc-chap-content" style="min-height:140px;">${escHtml(ch.content||'')}</textarea></div>
-    `, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-chapter="${m.docType}:${m.docId}:${isEdit?m.chapId:''}">Simpan Bab</button>`);
+    else if(m.docType==='handbook') doc=(S.handbooks||[]).find(function(x){return x.id===m.docId;});
+    else doc=(S.kbs||[]).find(function(x){return x.id===m.docId;});
+    var ch=isEdit&&doc?(doc.chapters||[]).find(function(c){return c.id===m.chapId;}):{title:'',content:''};
+    var lockTitle=isEdit&&((ch.title||'').toLowerCase()==='pendahuluan'||m.docType==='sop'||m.docType==='handbook');
+    return modalShell(isEdit?'Ubah Isi Bab':'Tambah Bab', '<div class="modal-context">Dokumen: <b>'+escHtml(doc?doc.name:'')+'</b>'+(lockTitle?'<br>Judul dikunci, isi boleh diubah.':'')+'</div><div class="field"><label>Judul Bab*</label><input class="modal-inp" id="doc-chap-title" value="'+escAttr(ch.title||'')+'" '+(lockTitle?'disabled':'')+'></div><div class="field"><label>Isi Bab*</label><textarea id="doc-chap-content" style="min-height:140px;">'+escHtml(ch.content||'')+'</textarea></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-chapter="'+m.docType+':'+m.docId+':'+(isEdit?m.chapId:'')+'">Simpan Bab</button>');
   }
   if(m.kind==='deleteChapter'){
-    return modalShell('Hapus Bab?', `<p style="font-size:14px;margin:0;">Hapus bab <b>${escHtml(m.chapTitle||'')}</b>? Bab Pendahuluan tidak bisa dihapus.</p>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-chapter="${m.docType}:${m.docId}:${m.chapId}">${ICONS.trash} Hapus</button>`);
+    return modalShell('Hapus Bab?', '<p>Hapus bab <b>'+escHtml(m.chapTitle||'')+'</b>?</p>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-chapter="'+m.docType+':'+m.docId+':'+m.chapId+'">Hapus</button>');
+  }
+  if(m.kind==='addDatabase'){
+    return modalShell('Tambah Database', '<div class="modal-context">Buat database baru (MySQL). Nama harus unik, lowercase, tanpa spasi.</div><div class="field"><label>Nama Database*</label><input class="modal-inp" id="db-name" placeholder="mis. griya_new"></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-database="">Tambah</button>');
+  }
+  if(m.kind==='editDatabase'){
+    const db=getDbByName(m.name);
+    return modalShell('Ubah Database', '<div class="modal-context">Ubah nama database <b>'+escHtml(m.name)+'</b></div><div class="field"><label>Nama Database*</label><input class="modal-inp" id="db-name" value="'+escAttr(db?db.name:'')+'"></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-database="'+escAttr(m.name)+'">Simpan</button>');
+  }
+  if(m.kind==='deleteDatabase'){
+    return modalShell('Hapus Database?', '<p>Hapus database <b>'+escHtml(m.name)+'</b> beserta <b>'+(getDbByName(m.name)?.tables.length||0)+' tabel</b> dan semua FK terkait secara permanen?</p><div class="delete-warning">Tindakan tidak dapat dibatalkan.</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-database="'+escAttr(m.name)+'">Hapus</button>');
+  }
+  if(m.kind==='addTable'){
+    return modalShell('Tambah Tabel — '+escHtml(m.db), '<div class="modal-context">Database: <b>'+escHtml(m.db)+'</b></div><div class="field"><label>Nama Tabel*</label><input class="modal-inp" id="db-table-name" placeholder="mis. branches"></div><div class="field"><label>Kolom awal (otomatis id)</label><div style="font-size:12px;color:var(--ink-faint);">Tabel baru akan dibuat dengan kolom <b>id bigint [pk]</b>. Tambah kolom lain setelahnya.</div></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-table="'+escAttr(m.db)+'">Tambah</button>');
+  }
+  if(m.kind==='editTable'){
+    return modalShell('Ubah Tabel', '<div class="modal-context">'+escHtml(m.full)+'</div><div class="field"><label>Nama Tabel*</label><input class="modal-inp" id="db-table-name" value="'+escAttr(m.table)+'"></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-table-edit="'+escAttr(m.full)+'">Simpan</button>');
+  }
+  if(m.kind==='deleteTable'){
+    return modalShell('Hapus Tabel?', '<p>Hapus tabel <b>'+escHtml(m.full)+'</b> dan semua kolom serta FK terkait?</p><div class="delete-warning">FK yang mengarah ke tabel ini juga akan dihapus.</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-table="'+escAttr(m.full)+'">Hapus</button>');
+  }
+  if(m.kind==='addAttr'){
+    return modalShell('Tambah Kolom — '+escHtml(m.full), '<div class="modal-context">Tabel: <b>'+escHtml(m.full)+'</b></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Nama Kolom*</label><input class="modal-inp" id="db-attr-name" placeholder="mis. branch_id"></div><div class="field"><label>Tipe*</label><select id="db-attr-type" class="modal-inp"><option>int</option><option>bigint</option><option>varchar</option><option>text</option><option>datetime</option><option>timestamp</option><option>date</option><option>decimal</option><option>double</option><option>boolean</option><option>tinyint</option><option>json</option></select></div></div><div style="margin-top:10px;display:flex;gap:12px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="db-attr-pk"> PK</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="db-attr-fk"> FK</label></div><div id="db-attr-fk-target-wrap" style="display:none;margin-top:10px;" class="field"><label>Referensi FK (opsional)</label><input class="modal-inp" id="db-attr-fk-target" placeholder="mis. griya_company.branches.id"></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-attr="'+escAttr(m.full)+'">Tambah</button>');
+  }
+  if(m.kind==='editAttr'){
+    const tb=getTableByFull(m.full); const col=tb?tb.attrs.find(c=>c.name===m.attr):null;
+    return modalShell('Ubah Kolom — '+escHtml(m.attr), '<div class="modal-context">'+escHtml(m.full)+' &bull; '+escHtml(m.attr)+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="field"><label>Nama Kolom*</label><input class="modal-inp" id="db-attr-name" value="'+escAttr(col?col.name:'')+'"></div><div class="field"><label>Tipe*</label><select id="db-attr-type" class="modal-inp"><option '+(col&&col.type==='int'?'selected':'')+'>int</option><option '+(col&&col.type==='bigint'?'selected':'')+'>bigint</option><option '+(col&&col.type==='varchar'?'selected':'')+'>varchar</option><option '+(col&&col.type==='text'?'selected':'')+'>text</option><option '+(col&&col.type==='datetime'?'selected':'')+'>datetime</option><option '+(col&&col.type==='timestamp'?'selected':'')+'>timestamp</option><option '+(col&&col.type==='date'?'selected':'')+'>date</option><option '+(col&&col.type==='decimal'?'selected':'')+'>decimal</option><option '+(col&&col.type==='double'?'selected':'')+'>double</option><option '+(col&&col.type==='boolean'?'selected':'')+'>boolean</option><option '+(col&&col.type==='tinyint'?'selected':'')+'>tinyint</option><option '+(col&&col.type==='json'?'selected':'')+'>json</option></select></div></div><div style="margin-top:10px;display:flex;gap:12px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="db-attr-pk" '+(col&&col.pk?'checked':'')+'> PK</label><label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="db-attr-fk" '+(col&&col.fk?'checked':'')+'> FK</label></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-attr-edit="'+escAttr(m.full+':'+m.attr)+'">Simpan</button>');
+  }
+  if(m.kind==='deleteAttr'){
+    return modalShell('Hapus Kolom?', '<p>Hapus kolom <b>'+escHtml(m.attr)+'</b> pada <b>'+escHtml(m.full)+'</b>?</p><div class="delete-warning">FK terkait juga akan dihapus.</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-attr="'+escAttr(m.full+':'+m.attr)+'">Hapus</button>');
+  }
+  if(m.kind==='addFK'){
+    const dbs = (typeof DB_MODEL!=='undefined'?DB_MODEL.databases:[]).map(d=>d.name);
+    return modalShell('Tambah Foreign Key'+(m.scope && m.scope!=='overall'?' — '+escHtml(m.scope):''), '<div style="display:grid;grid-template-columns:1fr;gap:12px;"><div class="field"><label>From (sumber) — format db.table.kolom</label><input class="modal-inp" id="db-fk-from" placeholder="mis. griya_sales.prospects.branch_id" value="'+escAttr(m.scope && m.scope!=='overall'?m.scope+'.':'')+'"></div><div class="field"><label>To (tujuan) — format db.table.kolom</label><input class="modal-inp" id="db-fk-to" placeholder="mis. griya_company.branches.id"></div></div><div style="margin-top:8px;font-size:12px;color:var(--ink-faint);">Contoh: <b>griya_sales.cold_prospects.branch_id > griya_company.branches.id</b></div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-fk="'+escAttr(m.scope||'overall')+'">Tambah FK</button>');
+  }
+  if(m.kind==='addViaSQL'){
+    const examples={database:"CREATE DATABASE griya_new;", table:"CREATE TABLE griya_company.new_table (\n  id bigint [pk],\n  name varchar\n);", column:"ALTER TABLE griya_company.branches ADD COLUMN new_col varchar;", fk:"ALTER TABLE griya_sales.prospects ADD FOREIGN KEY (branch_id) REFERENCES griya_company.branches(id);\n-- atau\nRef: griya_sales.prospects.branch_id > griya_company.branches.id", all:"CREATE DATABASE griya_new;\nCREATE TABLE griya_new.test (id int [pk], name varchar);\nALTER TABLE griya_company.branches ADD COLUMN note text;\nRef: griya_sales.cold_prospects.branch_id > griya_company.branches.id"};
+    const ex=examples[m.subtype]||examples.all;
+    const titles={database:"Tambah Database via SQL", table:"Tambah Table via SQL", column:"Tambah Kolom via SQL", fk:"Tambah FK via SQL", all:"Tambah via SQL (plain text)"};
+    return modalShell(titles[m.subtype]||titles.all, '<div class="modal-context">Ketik SQL/code plain text seperti SQL/SSQL. Sistem akan parse dan menambah ke model.</div><div class="field"><label>SQL / DBML Code*</label><textarea id="db-sql-code" style="min-height:160px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;" placeholder="'+escAttr(ex)+'"></textarea></div><div style="margin-top:8px;font-size:11px;color:var(--ink-faint);">Mendukung: CREATE DATABASE, CREATE TABLE (...), ALTER TABLE ADD COLUMN, Ref: a > b, ADD FOREIGN KEY</div>', '<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-sql="'+escAttr(m.subtype||'all')+'">Simpan</button>', true);
   }
 
   if (m.kind === 'editFasum' || m.kind === 'addFasum') {
@@ -5279,27 +6112,25 @@ function renderModal(){
   return '';
 }
 
-/* ======================= DOKUMEN: MANUAL MUTU / SOP / HANDBOOK =======================
-   Prinsip: list nama dokumen + CRUD, tanpa kolom link.
-   - Manual Mutu: filter Direktorat saja
-   - SOP: filter Direktorat > Divisi > Departemen, Edit -> draw.io, View -> gambar embed
-   - Handbook: filter Direktorat > Divisi > Departemen
+/* ======================= DOKUMEN: MANUAL / SOP / HANDBOOK / KB =======================
+   - List nama dokumen + CRUD, tanpa kolom link. Kode ditampilkan sebagai No.Dokumen.
+   - Manual: filter Direktorat saja. SOP/Handbook: filter Dir > Div > Dept. KB: filter kategori.
+   - Detail: tampilan ala tiptap docx-editor (toolbar + halaman A4). SOP: diagram card di atas.
 ============================================================================ */
-
 function docDirectorateName(id){
   if(!id || id==='ALL') return '-';
-  const d = (S.directorates||[]).find(x=>x.id===id);
-  return d ? d.name : '-';
+  const d=(S.directorates||[]).find(x=>x.id===id);
+  return d?d.name:'-';
 }
 function docDivisionName(id){
   if(!id) return '-';
-  const v = findDivision(id);
-  return v ? v.name : '-';
+  const v=findDivision(id);
+  return v?v.name:'-';
 }
 function docDepartmentName(id){
   if(!id) return '-';
-  const dep = findDepartment(id);
-  return dep ? dep.name : '-';
+  const dep=findDepartment(id);
+  return dep?dep.name:'-';
 }
 function docDivisions(dirId){
   if(!dirId || dirId==='ALL'){
@@ -5308,17 +6139,17 @@ function docDivisions(dirId){
     return all;
   }
   const d=(S.directorates||[]).find(x=>x.id===dirId);
-  return d ? (d.divisions||[]).map(v=>Object.assign({directorateId:d.id},v)) : [];
+  return d?(d.divisions||[]).map(v=>Object.assign({directorateId:d.id},v)):[];
 }
 function docDepartments(divId){
   if(!divId || divId==='ALL') return [];
   const v=findDivision(divId);
-  return v ? (v.departments||[]) : [];
+  return v?(v.departments||[]):[];
 }
 function docStatusBadge(st){
-  if(st==='Berlaku' || st==='Release') return '<span class="badge badge-lifecycle-release">Berlaku</span>';
-  if(st==='Review' || st==='Pra-Release') return '<span class="badge badge-lifecycle-pra-release">Review</span>';
-  if(st==='Obsolete' || st==='Arsip') return '<span class="badge badge-nonaktif">Obsolete</span>';
+  if(st==='Berlaku'||st==='Release') return '<span class="badge badge-lifecycle-release">Berlaku</span>';
+  if(st==='Review'||st==='Pra-Release') return '<span class="badge badge-lifecycle-pra-release">Review</span>';
+  if(st==='Obsolete'||st==='Arsip') return '<span class="badge badge-nonaktif">Obsolete</span>';
   return '<span class="badge badge-lifecycle-draft">Draft</span>';
 }
 function sopFlowchartSVG(code, name){
@@ -5327,138 +6158,359 @@ function sopFlowchartSVG(code, name){
   const svg="<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360'>"
     +"<rect width='640' height='360' fill='#F1F4F9'/>"
     +"<rect x='250' y='18' width='140' height='44' rx='22' fill='#2C4870'/><text x='320' y='45' font-family='sans-serif' font-size='15' font-weight='700' fill='#fff' text-anchor='middle'>START</text>"
-    +"<line x1='320' y1='62' x2='320' y2='92' stroke='#2C4870' stroke-width='2' marker-end='url(#a)'/>"
     +"<rect x='210' y='92' width='220' height='52' rx='8' fill='#fff' stroke='#2C4870' stroke-width='2'/><text x='320' y='113' font-family='sans-serif' font-size='13' font-weight='600' fill='#1B2434' text-anchor='middle'>"+t1+"</text><text x='320' y='130' font-family='sans-serif' font-size='11' fill='#5B6472' text-anchor='middle'>"+t2+"</text>"
-    +"<line x1='320' y1='144' x2='320' y2='172' stroke='#2C4870' stroke-width='2'/>"
     +"<polygon points='320,172 390,212 320,252 250,212' fill='#F6EDE1' stroke='#A9793F' stroke-width='2'/><text x='320' y='208' font-family='sans-serif' font-size='12' font-weight='700' fill='#7A5A2E' text-anchor='middle'>QC Lolos?</text>"
-    +"<text x='398' y='195' font-family='sans-serif' font-size='11' fill='#3E7A54'>Ya</text><text x='228' y='195' font-family='sans-serif' font-size='11' fill='#B4432F'>Tidak</text>"
-    +"<rect x='430' y='186' width='150' height='52' rx='8' fill='#E9F4EC' stroke='#3E7A54' stroke-width='2'/><text x='505' y='208' font-family='sans-serif' font-size='12' font-weight='700' fill='#2E5A3E' text-anchor='middle'>Selesai</text><text x='505' y='224' font-family='sans-serif' font-size='10' fill='#5B6472' text-anchor='middle'>END</text>"
-    +"<rect x='60' y='186' width='150' height='52' rx='8' fill='#FBEAE6' stroke='#B4432F' stroke-width='2'/><text x='135' y='208' font-family='sans-serif' font-size='12' font-weight='700' fill='#7A2E1F' text-anchor='middle'>Perbaiki</text><text x='135' y='224' font-family='sans-serif' font-size='10' fill='#5B6472' text-anchor='middle'>Ulangi</text>"
-    +"<defs><marker id='a' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 z' fill='#2C4870'/></marker></defs></svg>";
+    +"<rect x='430' y='186' width='150' height='52' rx='8' fill='#E9F4EC' stroke='#3E7A54' stroke-width='2'/><text x='505' y='212' font-family='sans-serif' font-size='12' font-weight='700' fill='#2E5A3E' text-anchor='middle'>Selesai</text>"
+    +"<rect x='60' y='186' width='150' height='52' rx='8' fill='#FBEAE6' stroke='#B4432F' stroke-width='2'/><text x='135' y='212' font-family='sans-serif' font-size='12' font-weight='700' fill='#7A2E1F' text-anchor='middle'>Perbaiki</text></svg>";
   return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
 function seedDocsIfEmpty(){
   if(!S.docOpen) S.docOpen={};
   const dirs=S.directorates||[];
-  const d0=dirs[0] ? dirs[0].id : 'dir-pcc';
-  const d1=dirs[1] ? dirs[1].id : d0;
-  const d2=dirs[2] ? dirs[2].id : d0;
+  const d0=dirs[0]?dirs[0].id:'dir-pcc';
+  const d1=dirs[1]?dirs[1].id:d0;
+  const d2=dirs[2]?dirs[2].id:d0;
   const divs0=docDivisions(d0);
-  const v0=divs0[0] ? divs0[0].id : null;
-  const dep0=v0 ? (docDepartments(v0)[0] ? docDepartments(v0)[0].id : null) : null;
+  const v0=divs0[0]?divs0[0].id:null;
+  const dep0=v0?(docDepartments(v0)[0]?docDepartments(v0)[0].id:null):null;
   const divs1=docDivisions(d1);
-  const v1=divs1[0] ? divs1[0].id : v0;
-  const dep1=v1 ? (docDepartments(v1)[0] ? docDepartments(v1)[0].id : dep0) : dep0;
-  function mkChap(title, content){ return {id:'bab-'+uid(), title:title, content:content||''}; }
-  if(!S.manuals || !S.manuals.length){
+  const v1=divs1[0]?divs1[0].id:v0;
+  const dep1=v1?(docDepartments(v1)[0]?docDepartments(v1)[0].id:dep0):dep0;
+  if(!S.manuals||!S.manuals.length){
     S.manuals=[
-      {id:'mm-001', code:'MM-001', name:'Manual Mutu Induk Perusahaan', directorateId:d0, version:'v3.0', status:'Berlaku', updated:'01 Agu 2026', updatedBy:'Direksi', purpose:'Menetapkan kebijakan mutu perusahaan sebagai payung seluruh SOP.', scope:'Berlaku untuk seluruh direktorat.', content:'Bab 1 Pendahuluan.\nBab 2 Konteks organisasi.\nBab 3 Kepemimpinan.\nBab 4 Perencanaan mutu.\nBab 5 Dukungan.\nBab 6 Operasi.\nBab 7 Evaluasi.\nBab 8 Perbaikan.',
-        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Manual ini menetapkan kebijakan mutu perusahaan sebagai payung seluruh SOP.\nBerlaku untuk seluruh direktorat.'},{id:'bab-'+'konteks', title:'Konteks Organisasi', content:'Profil perusahaan, peta proses, dan stakeholder.'},{id:'bab-'+'operasi', title:'Operasi', content:'Tahapan baku operasional dan kriteria lolos tiap tahap.'}]},
-      {id:'mm-002', code:'MM-002', name:'Manual Mutu Open Branch', directorateId:d1, version:'v2.1', status:'Berlaku', updated:'28 Jul 2026', updatedBy:'BQG', purpose:'Mengatur standar pembukaan cabang baru tepat waktu dan lolos QC.', scope:'Mencakup survei lokasi, permit, pembangunan POP ODC, QC, aktivasi.', content:'Fokus pada siklus Open Branch: opsi lokasi, survei, permit, plan area, pembangunan, QC, serah terima.',
-        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Mengatur standar pembukaan cabang baru tepat waktu dan lolos QC.\nMencakup survei lokasi, permit, pembangunan POP ODC, QC, aktivasi.'},{id:'bab-siklus', title:'Siklus Open Branch', content:'Opsi lokasi -> survei -> permit -> plan area -> pembangunan -> QC -> serah terima.'}]},
-      {id:'mm-003', code:'MM-003', name:'Kebijakan Pengendalian Dokumen', directorateId:d0, version:'v1.0', status:'Draft', updated:'Kemarin', updatedBy:'QA', purpose:'Mengatur versi, pengesahan, dan masa berlaku dokumen.', scope:'Berlaku untuk Manual, SOP, dan Handbook.', content:'Draft awal: kode dokumen, versi, pengesahan QA-Head-Direksi, aturan obsolete.',
-        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Mengatur versi, pengesahan, dan masa berlaku dokumen.\nBerlaku untuk Manual, SOP, dan Handbook.'}]}
+      {id:'mm-001', code:'MM-001', name:'Manual Mutu Induk Perusahaan', directorateId:d0, version:'v3.0', status:'Berlaku', updated:'01 Agu 2026', updatedBy:'Direksi', chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Manual ini menetapkan kebijakan mutu perusahaan sebagai payung seluruh SOP.\nBerlaku untuk seluruh direktorat.'},{id:'bab-pembahasan', title:'Pembahasan', content:'Uraian kebijakan, prinsip, dan standar mutu yang berlaku.'},{id:'bab-penutup', title:'Penutup', content:'Penutup dan komitmen penerapan mutu.'}]},
+      {id:'mm-002', code:'MM-002', name:'Manual Mutu Open Branch', directorateId:d1, version:'v2.1', status:'Berlaku', updated:'28 Jul 2026', updatedBy:'BQG', chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Mengatur standar pembukaan cabang baru tepat waktu dan lolos QC.\nMencakup survei lokasi, permit, pembangunan POP ODC, QC, aktivasi.'},{id:'bab-pembahasan', title:'Pembahasan', content:'Pembahasan siklus Open Branch: opsi lokasi, survei, permit, plan area, pembangunan, QC, serah terima.'},{id:'bab-penutup', title:'Penutup', content:'Penutup dan evaluasi berkelanjutan.'}]},
+      {id:'mm-003', code:'MM-003', name:'Kebijakan Pengendalian Dokumen', directorateId:d0, version:'v1.0', status:'Draft', updated:'Kemarin', updatedBy:'QA', chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Mengatur versi, pengesahan, dan masa berlaku dokumen.'},{id:'bab-pembahasan', title:'Pembahasan', content:'Pembahasan pengendalian dokumen.'},{id:'bab-penutup', title:'Penutup', content:'Penutup.'}]}
     ];
   } else {
     (S.manuals||[]).forEach(function(m){
-      if(!m.chapters || !m.chapters.length){
-        var pend=''+(m.purpose||'')+(m.scope?'\n'+m.scope:'');
-        m.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:pend||'-'}];
-        if(m.content) m.chapters.push({id:'bab-'+uid(), title:'Isi Dokumen', content:m.content});
+      const want=['Pendahuluan','Pembahasan','Penutup'];
+      if(!m.chapters||!m.chapters.length){
+        m.chapters=want.map(function(t,i){return {id: i===0?'bab-pendahuluan':(i===1?'bab-pembahasan':'bab-penutup'), title:t, content:'-'};});
       } else {
-        if(!m.chapters.some(function(c){return (c.title||'').toLowerCase()==='pendahuluan';})){
-          m.chapters.unshift({id:'bab-pendahuluan', title:'Pendahuluan', content:'-'});
-        }
+        // migrasi: pastikan 3 bab utama ada dengan urutan benar, pertahankan isi lama jika judul mirip
+        const byTitle={}; m.chapters.forEach(function(c){byTitle[(c.title||'').toLowerCase()]=c;});
+        const nc=[];
+        want.forEach(function(t,i){
+          const key=t.toLowerCase();
+          if(byTitle[key]) nc.push(byTitle[key]);
+          else if(i===0 && byTitle['pendahuluan']) nc.push(byTitle['pendahuluan']);
+          else nc.push({id: i===0?'bab-pendahuluan':(i===1?'bab-pembahasan':'bab-penutup'), title:t, content:'-'});
+        });
+        // tambahkan bab lain yang tidak termasuk 3 utama di belakang
+        m.chapters.forEach(function(c){ if(want.map(function(x){return x.toLowerCase();}).indexOf((c.title||'').toLowerCase())===-1) nc.push(c); });
+        // normalisasi id
+        nc.forEach(function(c,i){ if(i===0) c.id='bab-pendahuluan'; else if(i===1) c.id='bab-pembahasan'; else if(i===2) c.id='bab-penutup'; });
+        m.chapters=nc;
       }
     });
   }
-  if(!S.sops || !S.sops.length){
+  if(!S.sops||!S.sops.length){
     S.sops=[
-      {id:'sop-014', code:'SOP-014', name:'SOP Survey Lokasi POP ODC', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.3', status:'Berlaku', updated:'28 Jul 2026', updatedBy:'Dimas', pic:'Surveyor', purpose:'Memastikan lokasi ODC valid dan bisa dibangun.', scope:'Berlaku untuk seluruh opsi lokasi POP ODC baru.', reference:'MM-002 Manual Mutu Open Branch Bab 6. THB-001 Cara Foto Survey.', definitions:'POP: Point of Presence. ODC: Optical Distribution Cabinet. QC: Quality Control.', detailProses:'1. Siapkan checklist dan koordinat opsi.\n2. Kunjungi lokasi, foto 6 sisi + GPS lock.\n3. Nilai 5 syarat (pengawasan, akses mobil, teduh, tidak banjir, izin warga). Min 4 lolos.\n4. Ajukan rekomendasi Direkomendasikan / Pertimbangkan / Tolak ke Head.', communication:'Surveyor -> Admin Dokumen: kirim foto + GPS maks H+1.\nAdmin -> Head BQG: rekap skor untuk review.\nHead -> Surveyor: umpan balik Tolak = cari opsi baru.', steps:'1. Siapkan checklist\n2. Foto lokasi + GPS\n3. Nilai 5 syarat\n4. Ajukan rekomendasi', drawioUrl:'', preview:sopFlowchartSVG('SOP-014','Survey POP ODC')},
-      {id:'sop-015', code:'SOP-015', name:'SOP Permit RT/RW', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.0', status:'Review', updated:'20 Agu 2026', updatedBy:'QA', pic:'Admin Permit', purpose:'Mengatur alur perizinan proposal sampai BAK.', scope:'Mencakup permit ODC dan tiang di tingkat RT/RW/Desa.', reference:'MM-002 Bab 6. SOP-014.', definitions:'BAK: Berita Acara Kesepakatan. Proposal: penawaran kompensasi.', detailProses:'1. Ajukan proposal ke RT/RW.\n2. Negosiasi kompensasi sesuai standar.\n3. Tanda tangan BAK dan arsipkan.', communication:'Admin Permit -> Ketua RT/RW: proposal.\nKetua RT/RW -> Admin: persetujuan / revisi.\nAdmin -> Head: laporan status mingguan.', steps:'1. Ajukan proposal\n2. Negosiasi kompensasi\n3. Tanda tangan BAK', drawioUrl:'', preview:sopFlowchartSVG('SOP-015','Permit RT/RW')},
-      {id:'sop-016', code:'SOP-016', name:'SOP Pemasangan Tiang', directorateId:d2, divisionId:(docDivisions(d2)[0]||{id:v0}).id, departmentId:dep0, version:'v2.0', status:'Berlaku', updated:'01 Sep 2026', updatedBy:'Rizky', pic:'Teknisi', purpose:'Standar galian, tanam, dan QC vertikalitas tiang.', scope:'Tiang beton 9m dan besi 7m untuk route area.', reference:'THB-004 Cara Tanam Tiang 9m.', definitions:'Vertikalitas: kemiringan maksimal 1 derajat.', detailProses:'1. Galian 1/6 tinggi tiang.\n2. Tanam + urugan batu+semen, padatkan.\n3. Uji vertikalitas dengan waterpass + foto bukti.', communication:'Teknisi -> QC: lapor siap uji.\nQC -> Teknisi: Lolos / Revisi / Bongkar.\nQC -> Admin: input hasil ke monitoring.', steps:'1. Galian 1/6 tinggi\n2. Tanam + urugan\n3. Uji vertikalitas', drawioUrl:'', preview:sopFlowchartSVG('SOP-016','Pemasangan Tiang')}
+      {id:'sop-014', code:'SOP-014', name:'SOP Survey Lokasi POP ODC', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.3', status:'Berlaku', updated:'28 Jul 2026', updatedBy:'Dimas', pic:'Surveyor', preview:sopFlowchartSVG('SOP-014','Survey POP ODC'), chapters:[{id:'bab-penjelasan', title:'Penjelasan Umum', content:'Maksud dan Tujuan:\nMemastikan lokasi ODC valid.\n\nRuang Lingkup:\nSeluruh opsi POP baru.\n\nReferensi:\nMM-002 Bab 6.\n\nDefinisi Istilah:\nPOP, ODC, QC.'},{id:'bab-detail', title:'Detail Proses', content:'1. Siapkan checklist.\n2. Foto + GPS.\n3. Nilai 5 syarat.\n4. Ajukan rekomendasi.'},{id:'bab-komunikasi', title:'Proses Komunikasi', content:'Surveyor -> Admin: kirim foto H+1.\nAdmin -> Head: rekap skor.'}]},
+      {id:'sop-015', code:'SOP-015', name:'SOP Permit RT/RW', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.0', status:'Review', updated:'20 Agu 2026', updatedBy:'QA', pic:'Admin Permit', preview:sopFlowchartSVG('SOP-015','Permit'), chapters:[{id:'bab-penjelasan', title:'Penjelasan Umum', content:'Maksud dan Tujuan:\nAlur permit proposal sampai BAK.\n\nRuang Lingkup:\nRT/RW/Desa.\n\nReferensi:\nMM-002.\n\nDefinisi Istilah:\nBAK.'},{id:'bab-detail', title:'Detail Proses', content:'1. Ajukan proposal.\n2. Negosiasi.\n3. Tanda tangan BAK.'},{id:'bab-komunikasi', title:'Proses Komunikasi', content:'Admin -> RT/RW -> Head.'}]},
+      {id:'sop-016', code:'SOP-016', name:'SOP Pemasangan Tiang', directorateId:d2, divisionId:(docDivisions(d2)[0]||{id:v0}).id, departmentId:dep0, version:'v2.0', status:'Berlaku', updated:'01 Sep 2026', updatedBy:'Rizky', pic:'Teknisi', preview:sopFlowchartSVG('SOP-016','Tiang'), chapters:[{id:'bab-penjelasan', title:'Penjelasan Umum', content:'Maksud dan Tujuan:\nStandar galian dan QC vertikalitas.'},{id:'bab-detail', title:'Detail Proses', content:'1. Galian 1/6 tinggi.\n2. Tanam.\n3. Uji vertikalitas.'},{id:'bab-komunikasi', title:'Proses Komunikasi', content:'Teknisi -> QC -> Admin.'}]}
     ];
   } else {
-    // migrasi data lama agar punya struktur isi baru tanpa menghapus data user
     (S.sops||[]).forEach(function(s){
-      if(s.scope===undefined) s.scope='';
-      if(s.reference===undefined) s.reference='';
-      if(s.definitions===undefined) s.definitions='';
-      if(s.detailProses===undefined) s.detailProses=s.steps||'';
-      if(s.communication===undefined) s.communication='';
-      if(!s.chapters || !s.chapters.length){
-        s.chapters=[
-          {id:'bab-penjelasan', title:'Penjelasan Umum', content:'Maksud dan Tujuan:\n'+(s.purpose||'-')+'\n\nRuang Lingkup:\n'+(s.scope||'-')+'\n\nReferensi:\n'+(s.reference||'-')+'\n\nDefinisi Istilah:\n'+(s.definitions||'-')},
-          {id:'bab-detail', title:'Detail Proses', content:s.detailProses||s.steps||'-'},
-          {id:'bab-komunikasi', title:'Proses Komunikasi', content:s.communication||'-'}
-        ];
+      if(!s.chapters||!s.chapters.length){
+        s.chapters=[{id:'bab-penjelasan', title:'Penjelasan Umum', content:'-'},{id:'bab-detail', title:'Detail Proses', content:'-'},{id:'bab-komunikasi', title:'Proses Komunikasi', content:'-'}];
       }
+      if(!s.preview) s.preview=sopFlowchartSVG(s.code,s.name);
     });
   }
-  if(!S.handbooks || !S.handbooks.length){
+  if(!S.handbooks||!S.handbooks.length){
     S.handbooks=[
-      {id:'thb-002', code:'THB-002', name:'Cara Uji Loss dengan OTDR', category:'Fiber Optik', directorateId:d2, divisionId:(docDivisions(d2)[0]||{id:v0}).id, departmentId:dep0, version:'v1.2', status:'Berlaku', updated:'12 Agu 2026', updatedBy:'Andi', summary:'Splice loss maksimal 0,2 dB, ideal di bawah 0,1 dB.', tools:'OTDR terkalibrasi, patchcord reference, tisu alkohol.', spec:'Loss per splice <= 0,2 dB. Tekukan > 30mm.', steps:'1. Bersihkan konektor\n2. Pasang reference\n3. Test 1310/1550\n4. Baca event tertinggi\n5. Simpan OTB-Tube-Core-tanggal',
-        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Splice loss maksimal 0,2 dB, ideal di bawah 0,1 dB.'},{id:'bab-alat', title:'Alat dan Bahan', content:'OTDR terkalibrasi, patchcord reference, tisu alkohol.'},{id:'bab-langkah', title:'Langkah Kerja', content:'1. Bersihkan konektor\n2. Pasang reference\n3. Test 1310/1550\n4. Baca event tertinggi\n5. Simpan OTB-Tube-Core-tanggal'}]},
-      {id:'thb-004', code:'THB-004', name:'Cara Tanam Tiang 9m', category:'Tiang', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v1.0', status:'Draft', updated:'01 Sep 2026', updatedBy:'Rizky', summary:'Galian 1/6 tinggi tiang, urugan batu+semen untuk tanah lempung.', tools:'Cangkul, waterpass, semen, batu.', spec:'Kedalaman ~1,5m untuk 9m. Toleransi miring < 1 derajat.', steps:'1. Gali\n2. Tanam\n3. Urugan padat\n4. Foto vertikalitas',
-        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Galian 1/6 tinggi tiang, urugan batu+semen untuk tanah lempung.'},{id:'bab-langkah', title:'Langkah Kerja', content:'1. Gali\n2. Tanam\n3. Urugan padat\n4. Foto vertikalitas'}]},
-      {id:'thb-001', code:'THB-001', name:'Cara Foto Survey', category:'Survey', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v2.0', status:'Berlaku', updated:'05 Agu 2026', updatedBy:'Dimas', summary:'6 foto wajib: depan, akses, banjir, listrik, pengawasan, patok GPS.', tools:'HP GPS aktif, meteran.', spec:'Foto jelas, GPS lock, angle lebar.', steps:'1. Foto tampak depan\n2. Foto akses jalan\n3. Foto risiko banjir\n4. Catat koordinat',
-        chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'6 foto wajib: depan, akses, banjir, listrik, pengawasan, patok GPS.'},{id:'bab-langkah', title:'Langkah Kerja', content:'1. Foto tampak depan\n2. Foto akses jalan\n3. Foto risiko banjir\n4. Catat koordinat'}]}
+      {id:'thb-002', code:'THB-002', name:'Cara Uji Loss dengan OTDR', kategori:'Operasional', peruntukan:'Sistem SPVR', category:'Operasional', directorateId:d2, divisionId:(docDivisions(d2)[0]||{id:v0}).id, departmentId:dep0, version:'v1.2', status:'Berlaku', updated:'12 Agu 2026', updatedBy:'Andi', chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Splice loss maksimal 0,2 dB, ideal di bawah 0,1 dB.'},{id:'bab-pembahasan', title:'Pembahasan', content:'Pembahasan metode uji loss, alat, dan interpretasi hasil OTDR.'},{id:'bab-penutup', title:'Penutup', content:'Penutup dan rekomendasi tindak lanjut.'}]},
+      {id:'thb-001', code:'THB-001', name:'Panduan HRIS Absensi', kategori:'IT', peruntukan:'Sistem HRIS', category:'IT', directorateId:d1, divisionId:v1, departmentId:dep1, version:'v2.0', status:'Berlaku', updated:'05 Agu 2026', updatedBy:'Dimas', chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Panduan absensi via HRIS.'},{id:'bab-pembahasan', title:'Pembahasan', content:'Pembahasan langkah absensi dan validasi data.'},{id:'bab-penutup', title:'Penutup', content:'Penutup.'}]}
     ];
   } else {
     (S.handbooks||[]).forEach(function(h){
-      if(!h.chapters || !h.chapters.length){
-        h.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:h.summary||'-'}];
-        if(h.tools) h.chapters.push({id:'bab-'+uid(), title:'Alat dan Bahan', content:h.tools});
-        if(h.spec) h.chapters.push({id:'bab-'+uid(), title:'Spesifikasi', content:h.spec});
-        if(h.steps) h.chapters.push({id:'bab-'+uid(), title:'Langkah Kerja', content:h.steps});
-      } else {
-        if(!h.chapters.some(function(c){return (c.title||'').toLowerCase()==='pendahuluan';})){
-          h.chapters.unshift({id:'bab-pendahuluan', title:'Pendahuluan', content:h.summary||'-'});
-        }
+      const wantH=['Pendahuluan','Pembahasan','Penutup'];
+      if(!h.chapters||!h.chapters.length) h.chapters=wantH.map(function(t,i){return {id: i===0?'bab-pendahuluan':(i===1?'bab-pembahasan':'bab-penutup'), title:t, content:'-'};});
+      else {
+        const byT={}; h.chapters.forEach(function(c){byT[(c.title||'').toLowerCase()]=c;});
+        const ncH=[];
+        wantH.forEach(function(t,i){
+          const k=t.toLowerCase(); if(byT[k]) ncH.push(byT[k]); else ncH.push({id: i===0?'bab-pendahuluan':(i===1?'bab-pembahasan':'bab-penutup'), title:t, content:'-'});
+        });
+        h.chapters.forEach(function(c){ if(wantH.map(function(x){return x.toLowerCase();}).indexOf((c.title||'').toLowerCase())===-1) ncH.push(c); });
+        ncH.forEach(function(c,i){ if(i===0) c.id='bab-pendahuluan'; else if(i===1) c.id='bab-pembahasan'; else if(i===2) c.id='bab-penutup'; });
+        h.chapters=ncH;
       }
+      if(h.kategori===undefined) h.kategori=h.category||'Operasional';
+      if(h.peruntukan===undefined) h.peruntukan='';
+      h.category=h.kategori;
     });
   }
+  if(!S.kbs||!S.kbs.length){
+    S.kbs=[
+      {id:'kb-001', code:'KB-001', name:'Panduan HRIS Pengajuan Cuti', kategori:'Operasional', peruntukan:'Sistem HRIS', directorateId:d0, version:'v1.0', status:'Berlaku', updated:'10 Agu 2026', updatedBy:'HC', chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Panduan pengajuan cuti via HRIS untuk karyawan.'},{id:'bab-langkah', title:'Langkah Penggunaan', content:'1. Login HRIS.\n2. Pilih menu Cuti.\n3. Submit dan tunggu approval.'}]},
+      {id:'kb-002', code:'KB-002', name:'Monitoring SPVR NOC', kategori:'IT', peruntukan:'Sistem SPVR', directorateId:d2, version:'v2.0', status:'Berlaku', updated:'02 Sep 2026', updatedBy:'NOC', chapters:[{id:'bab-pendahuluan', title:'Pendahuluan', content:'Cara monitoring alarm SPVR di NOC.'},{id:'bab-eskalasi', title:'Eskalasi', content:'1. Cek dashboard.\n2. Eskalasi L1/L2.'}]}
+    ];
+  }
 }
-
 function ensureManualChapters(m){
-  if(!m.chapters || !m.chapters.length){
-    var pend=''+(m.purpose||'')+(m.scope?'\n'+m.scope:'');
-    m.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:pend||'-'}];
-    if(m.content) m.chapters.push({id:'bab-'+uid(), title:'Isi Dokumen', content:m.content});
+  if(!m.chapters||!m.chapters.length) m.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:'-'},{id:'bab-pembahasan', title:'Pembahasan', content:'-'},{id:'bab-penutup', title:'Penutup', content:'-'}];
+  else {
+    const want=['Pendahuluan','Pembahasan','Penutup'];
+    const has=w=>m.chapters.some(function(c){return (c.title||'').toLowerCase()===w.toLowerCase();});
+    want.forEach(function(w,i){ if(!has(w)) m.chapters.splice(i,0,{id: i===0?'bab-pendahuluan':(i===1?'bab-pembahasan':'bab-penutup'), title:w, content:'-'}); });
   }
   return m.chapters;
 }
 function isChapterOpen(docId, chapId, defaultOpen){
   if(!S.docOpen) S.docOpen={};
-  var key=docId+':'+chapId;
+  const key=docId+':'+chapId;
   if(!(key in S.docOpen)) return !!defaultOpen;
   return !!S.docOpen[key];
 }
 function renderChapterToggleList(docType, docId, chapters){
-  if(!chapters || !chapters.length) return '<div class="empty-state"><p>Belum ada bab. Klik Tambah Bab.</p></div>';
-  var lockedFormat=(docType==='sop' || docType==='handbook');
+  if(!chapters||!chapters.length) return '<div class="empty-state"><p>Belum ada bab.</p></div>';
+  const locked=(docType==='sop'||docType==='handbook');
   return '<div class="pillar-accordion">'+chapters.map(function(ch, idx){
-    var open=isChapterOpen(docId, ch.id, idx===0);
-    var isPendahuluan=(ch.title||'').toLowerCase()==='pendahuluan';
-    var hideDelete=lockedFormat || isPendahuluan;
-    return `
-    <div class="pillar">
-      <button class="pillar-head" data-toggle-chapter="${docType}:${docId}:${ch.id}" style="gap:10px;">
-        <span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;">
-          <span class="n" style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">${String(idx+1).padStart(2,'0')}</span>
-          <span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(ch.title||('Bab '+(idx+1)))}</span>
-        </span>
-        <span style="display:flex;align-items:center;gap:4px;flex-shrink:0;" onclick="event.stopPropagation();">
-          <span class="btn-ghost btn-sm" style="padding:4px 6px;" data-edit-chapter="${docType}:${docId}:${ch.id}" title="${lockedFormat?'Ubah isi bab':'Ubah bab'}">${ICONS.edit}</span>
-          ${hideDelete?'':`<span class="btn-ghost btn-sm" style="padding:4px 6px;color:var(--danger);" data-delete-chapter="${docType}:${docId}:${ch.id}" title="Hapus bab">${ICONS.trash}</span>`}
-          <span style="color:var(--ink-faint);display:inline-flex;">${open?ICONS.chevronDown:ICONS.chevron}</span>
-        </span>
-      </button>
-      ${open?`<div class="pillar-body"><div class="narrative"><p style="white-space:pre-line;margin:0;">${escHtml(ch.content||'-')}</p></div></div>`:''}
-    </div>`;
+    const open=isChapterOpen(docId, ch.id, idx===0);
+    const isPend=(ch.title||'').toLowerCase()==='pendahuluan';
+    const hideDel=locked||isPend;
+    return '<div class="pillar"><button class="pillar-head" data-toggle-chapter="'+docType+':'+docId+':'+ch.id+'" style="gap:10px;">'
+      +'<span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;"><span class="n" style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">'+String(idx+1).padStart(2,'0')+'</span>'
+      +'<span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(ch.title||('Bab '+(idx+1)))+'</span></span>'
+      +'<span style="display:flex;align-items:center;gap:4px;flex-shrink:0;" onclick="event.stopPropagation();"><span class="btn-ghost btn-sm" style="padding:4px 6px;" data-edit-chapter="'+docType+':'+docId+':'+ch.id+'" title="Ubah isi">'+ICONS.edit+'</span>'
+      +(hideDel?'':'<span class="btn-ghost btn-sm" style="padding:4px 6px;color:var(--danger);" data-delete-chapter="'+docType+':'+docId+':'+ch.id+'" title="Hapus">'+ICONS.trash+'</span>')
+      +'<span style="color:var(--ink-faint);display:inline-flex;">'+(open?ICONS.chevronDown:ICONS.chevron)+'</span></span></button>'
+      +(open?'<div class="pillar-body"><div class="narrative"><p style="white-space:pre-line;margin:0;">'+escHtml(ch.content||'-')+'</p></div></div>':'')
+      +'</div>';
   }).join('')+'</div>';
 }
-
+/* ----- Tampilan ala tiptap docx-editor: toolbar + halaman A4 ----- */
+function renderDocxEditor(docType, doc, opts){
+  opts=opts||{};
+  const chapters=doc.chapters||[];
+  const code=doc.code||'-';
+  const title=doc.name||'-';
+  const version=doc.version||'-';
+  const updated=(doc.updated||'-')+(doc.updatedBy?' oleh '+doc.updatedBy:'');
+  const editing=!!(S.docxEdit && S.docxEdit[doc.id]);
+  const zoom=(S.docxZoom && S.docxZoom[doc.id]) || 100;
+  const pop=(S.docxPop && S.docxPop.docId===doc.id) ? S.docxPop.kind : null;
+  const spacingCustom=!!(S.docxSpacingCustom && S.docxSpacingCustom[doc.id]);
+  const spacingVal=(S.docxSpacing && S.docxSpacing[doc.id]) || '1';
+  const tbtn='background:transparent;border:none;color:var(--ink);padding:6px 8px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;';
+  const tsel='background:var(--dept-bg);color:var(--ink);border:1px solid var(--border);font-size:12px;padding:4px 4px;border-radius:7px;cursor:pointer;';
+  const tdiv='width:1px;height:22px;background:var(--border);margin:0 5px;flex-shrink:0;';
+  const numberingPanel = pop==='numbering' ? `
+      <div style="position:absolute;top:calc(100% + 8px);left:0;background:var(--surface-raised);border:1px solid var(--border);border-radius:14px;padding:14px;z-index:60;width:340px;max-width:calc(100vw - 48px);box-shadow:var(--shadow);">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 10px;">
+          ${[
+            {v:'decimal', a:['1.','a.','b.','i.','2.']},
+            {v:'decimal-paren', a:['1)','a)','b)','i)','2)']},
+            {v:'decimal-nested', a:['1.','1.1.','1.2.','1.2.1.','2.']},
+            {v:'upper-alpha', a:['A.','a.','b.','i.','B.']},
+            {v:'lower-alpha-mixed', a:['a.','1.','2.','i.','b.']},
+            {v:'upper-roman', a:['I.','A.','B.','1.','II.']},
+            {v:'lower-roman', a:['i.','1.','2.','a.','ii.']},
+            {v:'decimal-leading-zero', a:['01.','a.','b.','i.','02.']}
+          ].map(function(o, ix){
+            return '<button data-docx-numbering-apply="'+o.v+'" data-docid="'+doc.id+'" style="background:'+(ix===0?'var(--division-bg)':'transparent')+';border:none;border-radius:10px;padding:10px 8px;cursor:pointer;text-align:left;">'
+              + o.a.map(function(t, ti){
+                var ind = ti===1||ti===2 ? 'margin-left:14px;' : ti===3 ? 'margin-left:28px;' : '';
+                return '<div style="display:flex;gap:6px;align-items:center;'+ind+'margin-bottom:3px;"><span style="color:var(--ink);font-size:12px;min-width:26px;">'+t+'</span><span style="flex:1;height:2px;background:var(--border-strong);border-radius:2px;opacity:.9;"></span></div>';
+              }).join('') + '</button>';
+          }).join('')}
+          <div></div>
+        </div>
+      </div>` : '';
+  const spacingPanel = pop==='spacing' ? `
+      <div style="position:absolute;top:calc(100% + 8px);right:0;background:var(--surface-raised);border:1px solid var(--border);border-radius:14px;padding:0;z-index:60;width:300px;max-width:calc(100vw - 48px);box-shadow:var(--shadow);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);">
+          <span style="color:var(--ink);font-size:14px;font-weight:600;">Custom spacing</span>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;flex-shrink:0;">
+            <input type="checkbox" data-docx-spacing-custom="1" data-docid="${doc.id}" ${spacingCustom?'checked':''} style="opacity:0;width:0;height:0;">
+            <span style="position:absolute;inset:0;background:${spacingCustom?'var(--primary)':'var(--border-strong)'};border-radius:999px;transition:.15s;"></span>
+            <span style="position:absolute;top:2px;${spacingCustom?'right:2px;':'left:2px;'}width:20px;height:20px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>
+          </label>
+        </div>
+        ${!spacingCustom ? `
+        <div style="padding:6px;">
+          ${[['1','Single (1.0)'],['1.15','1.15'],['1.5','1.5'],['2','Double (2.0)']].map(function(r){
+            var on = spacingVal===r[0];
+            return '<button data-docx-spacing-apply="'+r[0]+'" data-docid="'+doc.id+'" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:'+(on?'var(--division-bg)':'transparent')+';border:none;border-radius:9px;color:var(--ink);font-size:14px;padding:10px 12px;cursor:pointer;margin-bottom:2px;"><span>'+r[1]+'</span>'+(on?'<span style="color:var(--primary);font-size:15px;">✓</span>':'')+'</button>';
+          }).join('')}
+          <div style="height:1px;background:var(--border);margin:6px 4px;"></div>
+          <button data-docx-spacing-extra="before" data-docid="${doc.id}" style="display:block;width:100%;background:transparent;border:none;color:var(--ink);font-size:14px;padding:9px 12px;text-align:left;cursor:pointer;">Add spacing before</button>
+          <button data-docx-spacing-extra="after" data-docid="${doc.id}" style="display:block;width:100%;background:transparent;border:none;color:var(--ink);font-size:14px;padding:9px 12px;text-align:left;cursor:pointer;">Add spacing after</button>
+        </div>` : `
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:12px;">
+          <div style="color:var(--ink);font-size:14px;font-weight:700;">Line spacing</div>
+          <div style="display:flex;gap:8px;align-items:center;border:1px solid var(--border);border-radius:9px;padding:4px 4px 4px 10px;">
+            <input data-docx-spacing-line="1" data-docid="${doc.id}" value="${escAttr(spacingVal)}" style="flex:1;background:transparent;border:none;color:var(--ink);font-size:14px;outline:none;min-width:0;">
+            <span style="color:var(--ink-faint);font-size:13px;">relative ▾</span>
+          </div>
+          <div style="color:var(--ink);font-size:14px;font-weight:700;">Paragraph spacing</div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;min-width:0;"><div style="color:var(--ink-faint);font-size:12px;margin-bottom:5px;">Before</div><div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:9px;padding:7px 9px;gap:6px;"><input data-docx-spacing-before="1" data-docid="${doc.id}" value="0" style="flex:1;width:100%;background:transparent;border:none;color:var(--ink);font-size:14px;outline:none;min-width:0;"><span style="color:var(--ink-faint);font-size:13px;">px</span></div></div>
+            <div style="flex:1;min-width:0;"><div style="color:var(--ink-faint);font-size:12px;margin-bottom:5px;">After</div><div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:9px;padding:7px 9px;gap:6px;"><input data-docx-spacing-after="1" data-docid="${doc.id}" value="0" style="flex:1;width:100%;background:transparent;border:none;color:var(--ink);font-size:14px;outline:none;min-width:0;"><span style="color:var(--ink-faint);font-size:13px;">px</span></div></div>
+          </div>
+          <button data-docx-spacing-applycustom="${doc.id}" style="background:var(--primary);border:none;color:var(--primary-ink);font-size:13px;font-weight:600;border-radius:9px;padding:9px;cursor:pointer;">Apply</button>
+        </div>`}
+      </div>` : '';
+  const alignPanel = pop==='align' ? `
+      <div style="position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--surface-raised);border:1px solid var(--border);border-radius:999px;padding:7px 9px;z-index:60;display:flex;gap:2px;box-shadow:var(--shadow);">
+        ${[['justifyLeft','left'],['justifyCenter','center'],['justifyRight','right'],['justifyFull','justify']].map(function(a){
+          function lines(pos){
+            var rows = pos==='left'
+              ? ['70%|left','50%|left','70%|left']
+              : pos==='center' ? ['50%|center','70%|center','50%|center']
+              : pos==='right' ? ['70%|right','50%|right','70%|right']
+              : ['100%|full','100%|full','100%|full'];
+            return rows.map(function(r){
+              var w=r.split('|')[0], p=r.split('|')[1];
+              var j = p==='left'?'flex-start':p==='right'?'flex-end':p==='center'?'center':'stretch';
+              return '<div style="display:flex;justify-content:'+j+';"><span style="display:block;width:'+w+';height:2.5px;background:var(--ink);border-radius:2px;"></span></div>';
+            }).join('<div style="height:4px;"></div>');
+          }
+          return '<button data-docx-align-btn="'+a[0]+'" title="'+a[1]+'" style="background:transparent;border:none;border-radius:9px;padding:7px 11px;cursor:pointer;"><span style="display:block;width:28px;">'+lines(a[1])+'</span></button>';
+        }).join('')}
+      </div>` : '';
+  const bodyHtml=chapters.map(function(ch, i){
+    if(editing){
+      return '<h2 style="font-family:var(--serif);font-size:16px;margin:22px 0 8px;color:var(--ink);">'
+        +String(i+1)+'. '+escHtml(ch.title||('Bab '+(i+1)))
+        +'</h2><div style="font-size:13.5px;line-height:1.75;color:var(--ink);margin:0 0 10px;outline:2px solid transparent;border-radius:4px;min-height:24px;padding:4px 6px;" contenteditable="true" spellcheck="false" data-docx-body="1" data-doctype="'+docType+'" data-docid="'+doc.id+'" data-chapid="'+ch.id+'">'+escHtml(ch.content||'')+'</div>';
+    }
+    return '<h2 style="font-family:var(--serif);font-size:16px;margin:22px 0 8px;color:var(--ink);">'
+      +String(i+1)+'. '+escHtml(ch.title||('Bab '+(i+1)))
+      +'</h2><p style="font-size:13.5px;line-height:1.75;color:var(--ink);white-space:pre-line;margin:0 0 10px;">'+escHtml(ch.content||'-')+'</p>';
+  }).join('') || '<p style="color:var(--ink-faint);">Belum ada isi.</p>';
+  // 1. perkecil kotak ukuran font | 2. tema: tidak hardcode gelap, ikut var(--*) agar dark/light otomatis | 1. dropdown tidak bikin scroll: overflow visible di bar
+  const toolbar = editing ? `
+    <div style="display:flex;align-items:center;gap:3px;flex-wrap:nowrap;overflow:visible;padding:6px 8px;background:var(--surface);color:var(--ink);position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);white-space:nowrap;">
+      <button title="Zoom out" data-docx-zoom="-10" data-docid="${doc.id}" style="${tbtn}font-size:14px;min-width:28px;">−</button>
+      <span style="font-size:12px;min-width:42px;text-align:center;color:var(--ink-soft);">${zoom}%</span>
+      <button title="Zoom in" data-docx-zoom="10" data-docid="${doc.id}" style="${tbtn}font-size:14px;min-width:28px;">+</button>
+      <span style="${tdiv}"></span>
+      <select data-docx-block="1" title="Text style" style="${tsel}max-width:76px;font-size:12px;padding:4px 4px;"><option value="p">Text</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option><option value="blockquote">Quote</option><option value="pre">Code</option></select>
+      <select data-docx-font="1" title="Font family" style="${tsel}max-width:112px;font-size:12px;padding:4px 4px;text-overflow:ellipsis;overflow:hidden;"><option>Default · Carlito</option><option>Arial</option><option>Times New Roman</option><option>IBM Plex Sans</option></select>
+      <span style="display:inline-flex;align-items:center;gap:0;background:var(--dept-bg);border:1px solid var(--border);border-radius:7px;overflow:hidden;">
+        <input data-docx-size-input="1" data-docid="${doc.id}" value="16" list="docx-sizes-${doc.id}" placeholder="16" title="Ukuran font — ketik manual atau pilih" style="width:32px;border:none;background:transparent;color:var(--ink);font-size:11px;text-align:center;outline:none;padding:4px 2px;">
+        <datalist id="docx-sizes-${doc.id}"><option value="11"></option><option value="12"></option><option value="14"></option><option value="16"></option><option value="18"></option><option value="24"></option><option value="28"></option><option value="32"></option></datalist>
+        <select data-docx-size="1" title="Pilih ukuran" style="background:transparent;border:none;border-left:1px solid var(--border);color:var(--ink-faint);font-size:10px;padding:2px 2px;cursor:pointer;max-width:22px;"><option value="">▾</option><option value="11">11</option><option value="12">12</option><option value="14">14</option><option value="16">16</option><option value="18">18</option><option value="24">24</option></select>
+      </span>
+      <span style="${tdiv}"></span>
+      <button title="Bold" data-docx-cmd="bold" style="${tbtn}font-weight:800;font-size:13px;padding:6px 7px;">B</button>
+      <button title="Italic" data-docx-cmd="italic" style="${tbtn}font-style:italic;font-size:13px;padding:6px 7px;">I</button>
+      <button title="Strikethrough" data-docx-cmd="strikeThrough" style="${tbtn}text-decoration:line-through;font-size:13px;padding:6px 7px;">S</button>
+      <button title="Code" data-docx-cmd="formatBlock:pre" style="${tbtn}font-size:11px;padding:6px 7px;">&lt;/&gt;</button>
+      <span style="position:relative;display:inline-flex;align-items:center;">
+        <button data-docx-cmd="foreColorBtn" title="Text color" style="${tbtn}font-size:14px;padding-right:2px;">A<span style="display:block;height:3px;background:var(--ink);margin-top:-1px;border-radius:2px;"></span></button>
+        <input type="color" value="#2c4870" data-docx-color="fore" title="Pilih warna teks" style="width:16px;height:20px;padding:0;margin:0;background:transparent;border:none;cursor:pointer;">
+        <span style="color:var(--ink-faint);font-size:10px;">▾</span>
+      </span>
+      <span style="${tdiv}"></span>
+      <button title="Link" data-docx-cmd="createLink" style="${tbtn}font-size:13px;padding:6px 7px;">🔗</button>
+      <button title="Insert gambar (URL / upload)" data-docx-cmd="image" style="${tbtn}font-size:13px;padding:6px 7px;">🖼</button>
+      <input type="file" accept="image/*" data-docx-image-file="${doc.id}" style="display:none;">
+      <button title="Insert tabel 3x3" data-docx-cmd="table" style="${tbtn}font-size:13px;padding:6px 7px;">▦</button>
+      <span style="${tdiv}"></span>
+      <button title="Bullet list" data-docx-cmd="insertUnorderedList" style="${tbtn}font-size:13px;padding:6px 7px;">☰•</button>
+      <span style="position:relative;display:inline-flex;align-items:center;">
+        <button title="Ordered list" data-docx-cmd="insertOrderedList" style="${tbtn}font-size:13px;padding-right:2px;">1≡</button>
+        <button title="Poin angka (8 gaya)" data-docx-pop="numbering" data-docid="${doc.id}" style="${tbtn}font-size:9px;color:var(--ink-faint);padding-left:0;">▾</button>
+        ${pop==='numbering' ? numberingPanel : ''}
+      </span>
+      <span style="${tdiv}"></span>
+      <span style="position:relative;display:inline-flex;">
+        <button title="Rata (kiri/tengah/kanan/justify)" data-docx-pop="align" data-docid="${doc.id}" style="${tbtn}font-size:13px;">☰ ▾</button>
+        ${pop==='align' ? alignPanel : ''}
+      </span>
+      <span style="position:relative;display:inline-flex;">
+        <button title="Spacing" data-docx-pop="spacing" data-docid="${doc.id}" style="${tbtn}font-size:13px;">⇅ ▾</button>
+        ${pop==='spacing' ? spacingPanel : ''}
+      </span>
+      <span style="${tdiv}"></span>
+      <button title="Page break" data-docx-cmd="pagebreak" style="${tbtn}font-size:13px;padding:6px 7px;">⤓</button>
+      <button title="Footnote" data-docx-cmd="footnote" style="background:transparent;border:1px solid var(--border-strong);color:var(--ink);font-size:11px;padding:3px 6px;border-radius:6px;cursor:pointer;">✳</button>
+      <button title="Daftar Isi Otomatis" data-docx-toc="1" data-docid="${doc.id}" style="${tbtn}font-size:11px;">≡ TOC</button>
+      <span style="margin-left:auto;display:inline-flex;gap:6px;flex-shrink:0;">
+        <button class="btn btn-secondary btn-sm" data-docx-cancel="${docType}:${doc.id}">Batal</button>
+        <button class="btn btn-primary btn-sm" data-docx-save="${docType}:${doc.id}">Simpan</button>
+      </span>
+    </div>` : `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--dept-bg);">
+      <span style="font-size:12.5px;color:var(--ink-soft);">Mode baca — klik <b>Edit Dokumen</b> untuk masuk mode editor ala Tiptap.</span>
+      <span style="margin-left:auto;"><button class="btn btn-primary btn-sm" data-docx-edit="${docType}:${doc.id}">Edit Dokumen</button></span>
+    </div>`;
+  const headerText = doc.header || (code + ' • ' + title);
+  const footerText = doc.footer || 'Confidential';
+  // paginasi sederhana: pecah bab per halaman agar batas terlihat dan halaman baru otomatis
+  function estimateH(ch){ return 34 + Math.max(1, Math.ceil(((ch.content||'').length)/68)) * 22; }
+  let pages = []; let cur = []; let curH = 0;
+  const firstPageExtra = docType==='manual' ? 170 : docType==='handbook' ? 230 : 90;
+  chapters.forEach(function(ch, i){
+    let h = estimateH(ch);
+    const limit = pages.length===0 ? (680 - firstPageExtra) : 680;
+    if(cur.length && curH + h > limit){ pages.push(cur); cur = [ch]; curH = h; }
+    else { cur.push(ch); curH += h; }
+  });
+  if(cur.length) pages.push(cur);
+  if(!pages.length) pages = [[]];
+  const pageHtml = pages.map(function(pChs, pi){
+    const isFirst = pi===0;
+    const inner = pChs.length ? pChs.map(function(ch, j){
+      const globalIdx = chapters.indexOf(ch);
+      if(editing){
+        return '<h2 style="font-family:var(--serif);font-size:16px;margin:18px 0 6px;color:var(--ink);">'
+          + String(globalIdx+1) + '. ' + escHtml(ch.title||('Bab '+(globalIdx+1)))
+          + '</h2><div style="font-size:13.5px;line-height:1.75;color:var(--ink);margin:0 0 10px;outline:2px solid transparent;border-radius:4px;min-height:24px;padding:4px 6px;background:var(--surface);" contenteditable="true" spellcheck="false" data-docx-body="1" data-doctype="'+docType+'" data-docid="'+doc.id+'" data-chapid="'+ch.id+'">'+escHtml(ch.content||'')+'</div>';
+      }
+      return '<h2 style="font-family:var(--serif);font-size:16px;margin:18px 0 6px;color:var(--ink);">'
+        + String(globalIdx+1) + '. ' + escHtml(ch.title||('Bab '+(globalIdx+1)))
+        + '</h2><p style="font-size:13.5px;line-height:1.75;color:var(--ink);white-space:pre-line;margin:0 0 10px;">'+escHtml(ch.content||'-')+'</p>';
+    }).join('') : (isFirst ? '<p style="color:var(--ink-faint);">Belum ada isi. Klik Edit Dokumen untuk mengetik.</p>' : '<p style="color:var(--ink-faint);font-size:12px;">— lanjutan halaman '+(pi+1)+' —</p>');
+    const tocHtml = isFirst && doc.toc ? '<div style="background:var(--dept-bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:14px;"><div style="font-weight:700;font-size:13px;margin-bottom:8px;">Daftar Isi</div>' + (chapters||[]).map(function(c,ix){return '<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;border-bottom:1px dashed var(--border);"><span>'+String(ix+1)+'. '+escHtml(c.title||'')+'</span><span style="color:var(--ink-faint);">' + (Math.floor(ix/3)+1) + '</span></div>';}).join('') + '</div>' : '';
+    return '<div style="background:#fff;width:100%;max-width:760px;min-height:900px;border-radius:4px;box-shadow:0 8px 30px rgba(20,24,34,.14);padding:0;position:relative;display:flex;flex-direction:column;zoom:'+zoom+'%;margin-bottom:18px;overflow:hidden;">'
+      + '<div '+(editing?'contenteditable="true" spellcheck="false" data-docx-header="1" data-docid="'+doc.id+'" style="font-size:11px;color:var(--ink-faint);border-bottom:1px solid var(--border);padding:10px 60px 10px;outline:2px solid transparent;background:var(--dept-bg);min-height:22px;"':'style="font-size:11px;color:var(--ink-faint);border-bottom:1px solid var(--border);padding:10px 60px 10px;background:var(--surface);"')+'>'+escHtml(headerText)+'</div>'
+      + '<div style="flex:1;padding:18px 60px 12px;">' + (isFirst ? (function(){
+        let meta='';
+        if(docType==='manual'){
+          meta='<div style="background:var(--dept-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:140px 1fr;gap:6px 10px;font-size:12.5px;">'
+            +'<span style="color:var(--ink-faint);">Nama Dokumen</span><span style="font-weight:600;color:var(--ink);">'+escHtml(title)+'</span>'
+            +'<span style="color:var(--ink-faint);">No.Dokumen</span><span style="font-family:monospace;font-weight:600;color:var(--primary);">'+escHtml(code)+'</span>'
+            +'<span style="color:var(--ink-faint);">Versi</span><span>'+escHtml(version)+'</span>'
+            +'<span style="color:var(--ink-faint);">Status</span><span>'+docStatusBadge(doc.status)+'</span>'
+            +'<span style="color:var(--ink-faint);">Direktorat</span><span>'+escHtml(docDirectorateName(doc.directorateId))+'</span>'
+            +'</div>';
+        } else if(docType==='handbook'){
+          meta='<div style="background:var(--dept-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:140px 1fr;gap:6px 10px;font-size:12.5px;">'
+            +'<span style="color:var(--ink-faint);">Nama Dokumen</span><span style="font-weight:600;color:var(--ink);">'+escHtml(title)+'</span>'
+            +'<span style="color:var(--ink-faint);">No.Dokumen</span><span style="font-family:monospace;font-weight:600;color:var(--primary);">'+escHtml(code)+'</span>'
+            +'<span style="color:var(--ink-faint);">Kategori</span><span><span class="badge badge-division">'+escHtml(doc.kategori||doc.category||'-')+'</span></span>'
+            +'<span style="color:var(--ink-faint);">Peruntukan</span><span>'+escHtml(doc.peruntukan||'-')+'</span>'
+            +'<span style="color:var(--ink-faint);">Versi</span><span>'+escHtml(version)+'</span>'
+            +'<span style="color:var(--ink-faint);">Status</span><span>'+docStatusBadge(doc.status)+'</span>'
+            +'<span style="color:var(--ink-faint);">Direktorat</span><span>'+escHtml(docDirectorateName(doc.directorateId))+'</span>'
+            +'<span style="color:var(--ink-faint);">Divisi</span><span>'+escHtml(docDivisionName(doc.divisionId))+'</span>'
+            +'<span style="color:var(--ink-faint);">Departemen</span><span>'+escHtml(docDepartmentName(doc.departmentId))+'</span>'
+            +'</div>';
+        } else {
+          meta='<div style="font-size:12px;color:var(--ink-faint);margin-bottom:12px;">'+escHtml(code)+' \u2022 Versi '+escHtml(version)+' \u2022 Diperbarui '+escHtml(updated)+'</div>';
+        }
+        return '<h1 style="font-family:var(--serif);font-size:24px;margin:0 0 6px;color:var(--ink);">'+escHtml(title)+'</h1>' + meta + tocHtml;
+      })() : '') + inner + '</div>'
+      + '<div '+(editing?'contenteditable="true" spellcheck="false" data-docx-footer="1" data-docid="'+doc.id+'" style="font-size:11px;color:var(--ink-faint);border-top:1px solid var(--border);padding:10px 60px;display:flex;justify-content:space-between;outline:2px solid transparent;background:var(--dept-bg);min-height:22px;"':'style="font-size:11px;color:var(--ink-faint);border-top:1px solid var(--border);padding:10px 60px;display:flex;justify-content:space-between;background:var(--surface);"')+'><span>'+escHtml(footerText)+'</span><span>'+String(pi+1)+' of '+pages.length+'</span></div>'
+      + '</div>';
+  }).join('');
+  return `
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card);">
+    ${toolbar}
+    <div style="background:#E9ECF1;padding:24px 12px;display:flex;flex-direction:column;align-items:center;overflow:auto;gap:0;">
+      ${pageHtml}
+      <div style="width:100%;max-width:760px;height:1px;background:transparent;border-top:2px dashed var(--border-strong);margin:6px 0 0;opacity:.6;"></div>
+      <div style="font-size:11px;color:var(--ink-faint);margin-top:6px;">Batas halaman — konten melebihi batas otomatis pindah ke halaman baru</div>
+    </div>
+    <div style="padding:8px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-faint);">${editing ? 'Mode edit aktif — ketik langsung di halaman, header/footer dan isi. Pakai toolbar di atas, lalu Simpan.' : 'Mode baca.'}</div>
+  </div>`;
+}
 function renderManualMutuPage(){
   seedDocsIfEmpty();
   const q=(S.mmSearch||'').toLowerCase().trim();
@@ -5467,90 +6519,32 @@ function renderManualMutuPage(){
   const filtered=(S.manuals||[]).filter(m=>{
     if(dirF!=='ALL' && m.directorateId!==dirF) return false;
     if(q){
-      const hay=((m.name||'')+' '+(m.code||'')+' '+(m.purpose||'')).toLowerCase();
+      const hay=((m.name||'')+' '+(m.code||'')).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
   return `
-  <div class="page-head" style="margin-bottom:20px;">
-    <div>
-      <h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Governance & Quality Manual</h1>
-      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Kebijakan, prinsip, standar mutu &bull; ${filtered.length} dokumen</p>
-    </div>
-    <button class="btn btn-primary" data-add-manual="1">+ Tambah Dokumen</button>
-  </div>
-  <div class="pm-toolbar" style="margin-bottom:16px;">
-    <div class="pm-filters">
-      <div class="search-box pm-search" style="min-width:260px;">
-        <input type="text" id="mm-search-input" placeholder="Cari nama / kode dokumen..." value="${escAttr(S.mmSearch||'')}">
-      </div>
-      <select id="mm-filter-directorate" class="modal-inp" style="width:auto;padding:7px 12px;font-size:13px;">
-        <option value="ALL" ${dirF==='ALL'?'selected':''}>Semua Direktorat</option>
-        ${dirs.map(d=>`<option value="${escAttr(d.id)}" ${dirF===d.id?'selected':''}>${escHtml(d.name)}</option>`).join('')}
-      </select>
-    </div>
-    <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.manuals||[]).length} dokumen</div>
-  </div>
+  <div class="page-head" style="margin-bottom:20px;"><div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Governance & Quality Manual</h1><p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Kebijakan, prinsip, standar mutu &bull; ${filtered.length} dokumen</p></div><button class="btn btn-primary" data-add-manual="1">+ Tambah Dokumen</button></div>
+  <div class="pm-toolbar" style="margin-bottom:16px;"><div class="pm-filters"><div class="search-box pm-search" style="min-width:260px;"><input type="text" id="mm-search-input" placeholder="Cari nama / No.Dokumen..." value="${escAttr(S.mmSearch||'')}"></div>
+  <select id="mm-filter-directorate" class="modal-inp" style="width:auto;padding:7px 12px;font-size:13px;"><option value="ALL" ${dirF==='ALL'?'selected':''}>Semua Direktorat</option>${dirs.map(d=>'<option value="'+escAttr(d.id)+'" '+(dirF===d.id?'selected':'')+'>'+escHtml(d.name)+'</option>').join('')}</select></div>
+  <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.manuals||[]).length}</div></div>
   <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
-    <table class="data-table" style="border:none;border-radius:0;">
-      <thead><tr>
-        <th style="width:45px;text-align:center;">No</th>
-        <th>Nama Dokumen</th>
-        <th style="width:110px;">Kode</th>
-        <th style="width:80px;">Versi</th>
-        <th style="width:110px;">Status</th>
-        <th style="width:150px;">Update</th>
-        <th style="width:90px;text-align:right;">Aksi</th>
-      </tr></thead>
-      <tbody>
-        ${filtered.map((m,i)=>`
-        <tr>
-          <td style="text-align:center;font-weight:600;">${i+1}</td>
-          <td>
-            <div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-manual="${m.id}">${escHtml(m.name)}</div>
-            <div style="font-size:11.5px;color:var(--ink-soft);">Direktorat: ${escHtml(docDirectorateName(m.directorateId))}</div>
-          </td>
-          <td style="font-family:monospace;font-weight:600;color:var(--primary);">${escHtml(m.code)}</td>
-          <td>${escHtml(m.version||'-')}</td>
-          <td>${docStatusBadge(m.status)}</td>
-          <td style="font-size:12px;color:var(--ink-soft);">${escHtml(m.updated||'-')}${m.updatedBy?`<div style="font-size:11px;color:var(--ink-faint);">oleh ${escHtml(m.updatedBy)}</div>`:''}</td>
-          <td style="text-align:right;position:relative;">
-            <div style="display:inline-flex;gap:4px;">
-              <button class="btn-ghost btn-sm" style="padding:4px;" data-view-manual="${m.id}" title="Lihat">${ICONS.eye}</button>
-              <button class="kebab-btn" data-kebab="manual:${m.id}">${ICONS.kebab}</button>
-            </div>
-            ${kebabOpen('manual',m.id)?`<div class="kebab-menu"><button data-view-manual="${m.id}">${ICONS.eye} Lihat</button><button data-edit-manual="${m.id}">${ICONS.edit} Ubah</button><button class="danger" data-delete-manual="${m.id}">${ICONS.trash} Hapus</button></div>`:''}
-          </td>
-        </tr>`).join('')}
-        ${!filtered.length?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada dokumen yang sesuai filter. <button class="add-inline-btn" data-add-manual="1" style="display:inline;">+ Tambah Dokumen</button></td></tr>`:''}
-      </tbody>
-    </table>
-  </div>`;
+  <table class="data-table" style="border:none;border-radius:0;min-width:900px;"><thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Dokumen</th><th style="width:130px;">No.Dokumen</th><th style="width:80px;">Versi</th><th style="width:110px;">Status</th><th style="width:160px;">Direktorat</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead><tbody>
+  ${filtered.map((m,i)=>'<tr><td style="text-align:center;font-weight:600;">'+(i+1)+'</td><td><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-manual="'+m.id+'">'+escHtml(m.name)+'</div></td><td style="font-family:monospace;font-weight:600;color:var(--primary);">'+escHtml(m.code)+'</td><td>'+escHtml(m.version||'-')+'</td><td>'+docStatusBadge(m.status)+'</td><td style="font-size:12.5px;">'+escHtml(docDirectorateName(m.directorateId))+'</td><td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;"><button class="btn-ghost btn-sm" style="padding:4px;" data-view-manual="'+m.id+'" title="Lihat">'+ICONS.eye+'</button><button class="kebab-btn" data-kebab="manual:'+m.id+'">'+ICONS.kebab+'</button></div>'+(kebabOpen('manual',m.id)?'<div class="kebab-menu"><button data-view-manual="'+m.id+'">'+ICONS.eye+' Lihat</button><button data-edit-manual="'+m.id+'">'+ICONS.edit+' Ubah</button><button class="danger" data-delete-manual="'+m.id+'">'+ICONS.trash+' Hapus</button></div>':'')+'</td></tr>').join('')}
+  ${!filtered.length?'<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada dokumen yang sesuai filter.</td></tr>':''}
+  </tbody></table></div>`;
 }
-
 function renderManualMutuDetailPage(){
   seedDocsIfEmpty();
   const m=(S.manuals||[]).find(x=>x.id===S.mmDetailId);
   if(!m) return '<div class="empty-state"><p>Dokumen tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-manual-list="1">Kembali</button></div>';
-  const chapters=ensureManualChapters(m);
-  return `
-  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-manual-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar Manual Mutu</button></div>
-  <div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
-    <div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-secondary btn-sm" data-export-pdf="manual:${m.id}">Export PDF</button><button class="btn btn-secondary btn-sm" data-edit-manual="${m.id}">${ICONS.edit} Ubah</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-manual="${m.id}">${ICONS.trash} Hapus</button></div></div>
-    <div class="jd-header-main">
-      <div class="jd-header-title-row"><h1 class="jd-header-title">${escHtml(m.name)}</h1>${docStatusBadge(m.status)}</div>
-      <div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">${escHtml(docDirectorateName(m.directorateId))}</span><span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(m.code)}</span></div>
-      <div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">${escHtml(m.version||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">${escHtml(m.updated||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Bab</span><span class="jd-pill-val">${chapters.length}</span></span></div></div>
-    </div>
-  </div>
-  <div class="jd-section-card" style="margin-bottom:16px;">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;"><button class="btn btn-primary btn-sm" data-add-chapter="manual:${m.id}">+ Tambah Bab</button></div>
-    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;">Bab <b>Pendahuluan</b> wajib ada dan tidak bisa dihapus. Bab lain bebas ditambah sesuai kebutuhan karena manual mutu tidak ada format khusus.</div>
-    ${renderChapterToggleList('manual', m.id, chapters)}
-  </div>`;
+  ensureManualChapters(m);
+  return '<div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-manual-list="1" style="padding-left:0;color:var(--ink-soft);">'+ICONS.back+' Kembali ke Daftar Manual Mutu</button></div>'
+  +'<div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);"><div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-secondary btn-sm" data-edit-manual="'+m.id+'">'+ICONS.edit+' Ubah</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-manual="'+m.id+'">'+ICONS.trash+' Hapus</button></div></div>'
+  +'<div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">'+escHtml(m.name)+'</h1>'+docStatusBadge(m.status)+'</div><div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">'+escHtml(docDirectorateName(m.directorateId))+'</span><span class="jd-org-sep">/</span><span class="jd-org-item">'+escHtml(m.code)+'</span></div><div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">'+escHtml(m.version||'-')+'</span></span><span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">'+escHtml(m.updated||'-')+'</span></span></div></div></div></div>'
+  +renderDocxEditor('manual', m, {});
 }
-
 function renderSopPage(){
   seedDocsIfEmpty();
   const q=(S.sopSearch||'').toLowerCase().trim();
@@ -5563,133 +6557,33 @@ function renderSopPage(){
     if(divF!=='ALL' && s.divisionId!==divF) return false;
     if(depF!=='ALL' && s.departmentId!==depF) return false;
     if(q){
-      const hay=((s.name||'')+' '+(s.code||'')+' '+(s.pic||'')+' '+(s.purpose||'')).toLowerCase();
+      const hay=((s.name||'')+' '+(s.code||'')+' '+(s.pic||'')).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
-  return `
-  <div class="page-head" style="margin-bottom:20px;">
-    <div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">SOP</h1>
-    <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Alur proses kerja &bull; ${filtered.length} SOP &bull; flowchart digambar di draw.io, tersimpan sebagai gambar di web</p></div>
-    <button class="btn btn-primary" data-add-sop="1">+ Buat SOP</button>
-  </div>
-  <div class="pm-toolbar" style="margin-bottom:16px;">
-    <div class="pm-filters">
-      <div class="search-box pm-search" style="min-width:220px;"><input type="text" id="sop-search-input" placeholder="Cari kode / nama / PIC..." value="${escAttr(S.sopSearch||'')}"></div>
-      <select id="sop-filter-directorate" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;">
-        <option value="ALL">Semua Direktorat</option>
-        ${dirs.map(d=>`<option value="${escAttr(d.id)}" ${dirF===d.id?'selected':''}>${escHtml(d.name)}</option>`).join('')}
-      </select>
-      <select id="sop-filter-division" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;">
-        <option value="ALL">Semua Divisi</option>
-        ${divs.map(v=>`<option value="${escAttr(v.id)}" ${divF===v.id?'selected':''}>${escHtml(v.name)}</option>`).join('')}
-      </select>
-      <select id="sop-filter-department" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;">
-        <option value="ALL">Semua Departemen</option>
-        ${deps.map(dp=>`<option value="${escAttr(dp.id)}" ${depF===dp.id?'selected':''}>${escHtml(dp.name)}</option>`).join('')}
-      </select>
-    </div>
-    <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.sops||[]).length} SOP</div>
-  </div>
-  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
-    <table class="data-table" style="border:none;border-radius:0;min-width:900px;">
-      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama SOP</th><th style="width:110px;">Kode</th><th style="width:80px;">Versi</th><th style="width:110px;">Status</th><th style="width:150px;">Update</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
-      <tbody>
-        ${filtered.map((s,i)=>`
-        <tr>
-          <td style="text-align:center;font-weight:600;">${i+1}</td>
-          <td><div style="display:flex;gap:10px;align-items:center;">
-            <img src="${s.preview||sopFlowchartSVG(s.code,s.name)}" alt="flowchart" style="width:56px;height:34px;object-fit:cover;border:1px solid var(--border);border-radius:6px;background:#fff;flex-shrink:0;cursor:pointer;" data-view-sop="${s.id}">
-            <div><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-sop="${s.id}">${escHtml(s.name)}</div>
-            <div style="font-size:11.5px;color:var(--ink-soft);max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.purpose||'-')}</div>
-            <div style="font-size:11px;color:var(--ink-faint);">${escHtml(docDivisionName(s.divisionId))}${s.departmentId?' / '+escHtml(docDepartmentName(s.departmentId)):''} &bull; PIC ${escHtml(s.pic||'-')}</div></div>
-          </div></td>
-          <td style="font-family:monospace;font-weight:600;color:var(--primary);">${escHtml(s.code)}</td>
-          <td>${escHtml(s.version||'-')}</td>
-          <td>${docStatusBadge(s.status)}</td>
-          <td style="font-size:12px;color:var(--ink-soft);">${escHtml(s.updated||'-')}<div style="font-size:11px;color:var(--ink-faint);">oleh ${escHtml(s.updatedBy||'-')}</div></td>
-          <td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;">
-            <button class="btn-ghost btn-sm" style="padding:4px;" data-view-sop="${s.id}" title="Lihat Flowchart">${ICONS.eye}</button>
-            <button class="kebab-btn" data-kebab="sop:${s.id}">${ICONS.kebab}</button></div>
-            ${kebabOpen('sop',s.id)?`<div class="kebab-menu"><button data-view-sop="${s.id}">${ICONS.eye} Lihat Flowchart</button><button data-edit-sop-drawio="${s.id}">${ICONS.edit} Edit di draw.io</button><button class="danger" data-delete-sop="${s.id}">${ICONS.trash} Hapus</button></div>`:''}
-          </td>
-        </tr>`).join('')}
-        ${!filtered.length?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada SOP yang sesuai filter.</td></tr>`:''}
-      </tbody>
-    </table>
-  </div>
-  <div style="margin-top:10px;font-size:12px;color:var(--ink-faint);">Edit membuka draw.io di tab baru. View menampilkan gambar flowchart hasil embed (tanpa kolom link).</div>`;
+  return '<div class="page-head" style="margin-bottom:20px;"><div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">SOP</h1><p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Alur proses kerja &bull; '+filtered.length+' SOP</p></div><button class="btn btn-primary" data-add-sop="1">+ Buat SOP</button></div>'
+  +'<div class="pm-toolbar" style="margin-bottom:16px;"><div class="pm-filters"><div class="search-box pm-search" style="min-width:220px;"><input type="text" id="sop-search-input" placeholder="Cari No.Dokumen / nama / PIC..." value="'+escAttr(S.sopSearch||'')+'"></div>'
+  +'<select id="sop-filter-directorate" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Direktorat</option>'+dirs.map(d=>'<option value="'+escAttr(d.id)+'" '+(dirF===d.id?'selected':'')+'>'+escHtml(d.name)+'</option>').join('')+'</select>'
+  +'<select id="sop-filter-division" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Divisi</option>'+divs.map(v=>'<option value="'+escAttr(v.id)+'" '+(divF===v.id?'selected':'')+'>'+escHtml(v.name)+'</option>').join('')+'</select>'
+  +'<select id="sop-filter-department" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Departemen</option>'+deps.map(dp=>'<option value="'+escAttr(dp.id)+'" '+(depF===dp.id?'selected':'')+'>'+escHtml(dp.name)+'</option>').join('')+'</select></div>'
+  +'<div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>'+filtered.length+'</b> dari '+(S.sops||[]).length+'</div></div>'
+  +'<div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);"><table class="data-table" style="border:none;border-radius:0;min-width:900px;"><thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Dokumen</th><th style="width:130px;">No.Dokumen</th><th style="width:80px;">Versi</th><th style="width:110px;">Status</th><th style="width:150px;">Last Update</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead><tbody>'
+  +filtered.map((s,i)=>'<tr><td style="text-align:center;font-weight:600;">'+(i+1)+'</td><td><div style="display:flex;gap:10px;align-items:center;"><img src="'+(s.preview||sopFlowchartSVG(s.code,s.name))+'" style="width:56px;height:34px;object-fit:cover;border:1px solid var(--border);border-radius:6px;background:#fff;flex-shrink:0;cursor:pointer;" data-view-sop="'+s.id+'"><div><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-sop="'+s.id+'">'+escHtml(s.name)+'</div><div style="font-size:11px;color:var(--ink-faint);">'+escHtml(docDivisionName(s.divisionId))+(s.departmentId?' / '+escHtml(docDepartmentName(s.departmentId)):'')+'</div></div></div></td><td style="font-family:monospace;font-weight:600;color:var(--primary);">'+escHtml(s.code)+'</td><td>'+escHtml(s.version||'-')+'</td><td>'+docStatusBadge(s.status)+'</td><td style="font-size:12px;color:var(--ink-soft);">'+escHtml(s.updated||'-')+'</td><td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;"><button class="btn-ghost btn-sm" style="padding:4px;" data-view-sop="'+s.id+'" title="Lihat">'+ICONS.eye+'</button><button class="kebab-btn" data-kebab="sop:'+s.id+'">'+ICONS.kebab+'</button></div>'+(kebabOpen('sop',s.id)?'<div class="kebab-menu"><button data-view-sop="'+s.id+'">'+ICONS.eye+' Lihat Flowchart</button><button data-edit-sop-drawio="'+s.id+'">'+ICONS.edit+' Edit di draw.io</button><button data-edit-sop="'+s.id+'">'+ICONS.edit+' Ubah Info</button><button class="danger" data-delete-sop="'+s.id+'">'+ICONS.trash+' Hapus</button></div>':'')+'</td></tr>').join('')
+  +(!filtered.length?'<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada SOP yang sesuai filter.</td></tr>':'')
+  +'</tbody></table></div><div style="margin-top:10px;font-size:12px;color:var(--ink-faint);">Edit di draw.io membuka flowchart. Ubah Info untuk No.Dokumen / versi / status / last update. View menampilkan gambar embed + editor docx.</div>';
 }
-
 function renderSopDetailPage(){
   seedDocsIfEmpty();
   const s=(S.sops||[]).find(x=>x.id===S.sopDetailId);
   if(!s) return '<div class="empty-state"><p>SOP tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-sop-list="1">Kembali</button></div>';
   const img=s.preview||sopFlowchartSVG(s.code,s.name);
-  if(!s.chapters || !s.chapters.length){
-    s.chapters=[
-      {id:'bab-penjelasan', title:'Penjelasan Umum', content:'Maksud dan Tujuan:\n'+(s.purpose||'-')+'\n\nRuang Lingkup:\n'+(s.scope||'-')+'\n\nReferensi:\n'+(s.reference||'-')+'\n\nDefinisi Istilah:\n'+(s.definitions||'-')},
-      {id:'bab-detail', title:'Detail Proses', content:s.detailProses||s.steps||'-'},
-      {id:'bab-komunikasi', title:'Proses Komunikasi', content:s.communication||'-'}
-    ];
-  }
-  const diagramOpen=isChapterOpen(s.id, 'bab-diagram', false);
-  const chaptersHtml='<div class="pillar-accordion">'
-    + s.chapters.map(function(ch, idx){
-      var open=isChapterOpen(s.id, ch.id, idx===0);
-      return `
-      <div class="pillar">
-        <button class="pillar-head" data-toggle-chapter="sop:${s.id}:${ch.id}" style="gap:10px;">
-          <span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;">
-            <span class="n" style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">${String(idx+1).padStart(2,'0')}</span>
-            <span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(ch.title||('Bab '+(idx+1)))}</span>
-          </span>
-          <span style="display:flex;align-items:center;gap:4px;flex-shrink:0;" onclick="event.stopPropagation();">
-            <span class="btn-ghost btn-sm" style="padding:4px 6px;" data-edit-chapter="sop:${s.id}:${ch.id}" title="Ubah isi bab">${ICONS.edit}</span>
-            <span style="color:var(--ink-faint);display:inline-flex;">${open?ICONS.chevronDown:ICONS.chevron}</span>
-          </span>
-        </button>
-        ${open?`<div class="pillar-body"><div class="narrative"><p style="white-space:pre-line;margin:0;">${escHtml(ch.content||'-')}</p></div></div>`:''}
-      </div>`;
-    }).join('')
-    + `
-    <div class="pillar">
-      <button class="pillar-head" data-toggle-chapter="sop:${s.id}:bab-diagram" style="gap:10px;">
-        <span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;">
-          <span class="n" style="font-size:11.5px;color:var(--ink-faint);font-weight:600;">${String(s.chapters.length+1).padStart(2,'0')}</span>
-          <span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Diagram Alir</span>
-        </span>
-        <span style="color:var(--ink-faint);display:inline-flex;">${diagramOpen?ICONS.chevronDown:ICONS.chevron}</span>
-      </button>
-      ${diagramOpen?`<div class="pillar-body">
-        <div style="background:var(--dept-bg);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;">
-          <img src="${img}" alt="Flowchart ${escAttr(s.code)}" style="max-width:100%;height:auto;border:1px solid var(--border);border-radius:8px;background:#fff;">
-        </div>
-        <div style="font-size:12px;color:var(--ink-faint);margin-top:8px;">Klik Edit di draw.io untuk mengubah, gambar di sini terupdate otomatis.</div>
-      </div>`:''}
-    </div>`
-    +'</div>';
-  return `
-  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-sop-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar SOP</button></div>
-  <div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
-    <div class="jd-header-nav"><div></div><div class="jd-header-actions">
-      <button class="btn btn-secondary btn-sm" data-export-pdf="sop:${s.id}">Export PDF</button>
-      <button class="btn btn-primary btn-sm" data-edit-sop-drawio="${s.id}">Edit di draw.io</button>
-      <button class="btn btn-secondary btn-sm" data-download-sop="${s.id}">Ekspor PNG</button>
-      <button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-sop="${s.id}">${ICONS.trash}</button>
-    </div></div>
-    <div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">[${escHtml(s.code)}] ${escHtml(s.name)}</h1>${docStatusBadge(s.status)}</div>
-    <div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">${escHtml(docDirectorateName(s.directorateId))}</span><span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDivisionName(s.divisionId))}</span>${s.departmentId?`<span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDepartmentName(s.departmentId))}</span>`:''}</div>
-    <div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">${escHtml(s.version||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">${escHtml(s.updated||'-')}</span></span></div></div></div>
-  </div>
-  <div class="detail-main" style="display:flex;flex-direction:column;gap:16px;">
-    <div class="jd-section-card">
-      ${chaptersHtml}
-    </div>
-  </div>`;
+  return '<div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-sop-list="1" style="padding-left:0;color:var(--ink-soft);">'+ICONS.back+' Kembali ke Daftar SOP</button></div>'
+  +'<div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);"><div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-primary btn-sm" data-edit-sop-drawio="'+s.id+'">Edit di draw.io</button><button class="btn btn-secondary btn-sm" data-download-sop="'+s.id+'">Ekspor PNG</button><button class="btn btn-secondary btn-sm" data-edit-sop="'+s.id+'">'+ICONS.edit+' Ubah Info</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-sop="'+s.id+'">'+ICONS.trash+'</button></div></div>'
+  +'<div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">['+escHtml(s.code)+'] '+escHtml(s.name)+'</h1>'+docStatusBadge(s.status)+'</div><div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">'+escHtml(docDirectorateName(s.directorateId))+'</span><span class="jd-org-sep">/</span><span class="jd-org-item">'+escHtml(docDivisionName(s.divisionId))+'</span></div><div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">'+escHtml(s.version||'-')+'</span></span><span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">'+escHtml(s.updated||'-')+'</span></span></div></div></div></div>'
+  +'<div class="jd-section-card" style="margin-bottom:16px;"><div class="jd-section-head"><span class="num">◈</span><h2>Diagram Alir</h2><span style="margin-left:auto;display:inline-flex;gap:6px;"><button class="btn btn-primary btn-sm" data-edit-sop-drawio="'+s.id+'">Edit di draw.io</button></span></div><div style="background:var(--dept-bg);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;"><img src="'+img+'" style="max-width:100%;height:auto;border:1px solid var(--border);border-radius:8px;background:#fff;"></div></div>'
+  +renderDocxEditor('sop', s, {});
 }
-
 function renderHandbookPage(){
   seedDocsIfEmpty();
   const q=(S.thbSearch||'').toLowerCase().trim();
@@ -5702,69 +6596,59 @@ function renderHandbookPage(){
     if(divF!=='ALL' && h.divisionId!==divF) return false;
     if(depF!=='ALL' && h.departmentId!==depF) return false;
     if(q){
-      const hay=((h.name||'')+' '+(h.code||'')+' '+(h.category||'')+' '+(h.summary||'')).toLowerCase();
+      const hay=((h.name||'')+' '+(h.code||'')+' '+(h.kategori||h.category||'')+' '+(h.peruntukan||'')).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
-  return `
-  <div class="page-head" style="margin-bottom:20px;">
-    <div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Technical Handbook</h1>
-    <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Metode teknis dan cara penerapan &bull; ${filtered.length} handbook</p></div>
-    <button class="btn btn-primary" data-add-handbook="1">+ Tambah Handbook</button>
-  </div>
-  <div class="pm-toolbar" style="margin-bottom:16px;">
-    <div class="pm-filters">
-      <div class="search-box pm-search" style="min-width:220px;"><input type="text" id="thb-search-input" placeholder="Cari judul / kategori..." value="${escAttr(S.thbSearch||'')}"></div>
-      <select id="thb-filter-directorate" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Direktorat</option>${dirs.map(d=>`<option value="${escAttr(d.id)}" ${dirF===d.id?'selected':''}>${escHtml(d.name)}</option>`).join('')}</select>
-      <select id="thb-filter-division" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Divisi</option>${divs.map(v=>`<option value="${escAttr(v.id)}" ${divF===v.id?'selected':''}>${escHtml(v.name)}</option>`).join('')}</select>
-      <select id="thb-filter-department" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Departemen</option>${deps.map(dp=>`<option value="${escAttr(dp.id)}" ${depF===dp.id?'selected':''}>${escHtml(dp.name)}</option>`).join('')}</select>
-    </div>
-    <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.handbooks||[]).length}</div>
-  </div>
-  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
-    <table class="data-table" style="border:none;border-radius:0;min-width:900px;">
-      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Judul Handbook</th><th style="width:110px;">Kode</th><th style="width:130px;">Kategori</th><th style="width:80px;">Versi</th><th style="width:150px;">Update</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
-      <tbody>
-        ${filtered.map((h,i)=>`
-        <tr><td style="text-align:center;font-weight:600;">${i+1}</td>
-        <td><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-handbook="${h.id}">${escHtml(h.name)}</div>
-        <div style="font-size:11.5px;color:var(--ink-soft);max-width:380px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(h.summary||'-')}</div>
-        <div style="font-size:11px;color:var(--ink-faint);">${escHtml(docDivisionName(h.divisionId))}${h.departmentId?' / '+escHtml(docDepartmentName(h.departmentId)):''}</div></td>
-        <td style="font-family:monospace;font-weight:600;color:var(--primary);">${escHtml(h.code)}</td>
-        <td><span class="badge badge-division">${escHtml(h.category||'-')}</span></td>
-        <td>${escHtml(h.version||'-')}</td>
-        <td style="font-size:12px;color:var(--ink-soft);">${escHtml(h.updated||'-')}<div style="font-size:11px;color:var(--ink-faint);">oleh ${escHtml(h.updatedBy||'-')}</div></td>
-        <td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;"><button class="btn-ghost btn-sm" style="padding:4px;" data-view-handbook="${h.id}" title="Lihat">${ICONS.eye}</button><button class="kebab-btn" data-kebab="handbook:${h.id}">${ICONS.kebab}</button></div>
-        ${kebabOpen('handbook',h.id)?`<div class="kebab-menu"><button data-view-handbook="${h.id}">${ICONS.eye} Lihat</button><button data-edit-handbook="${h.id}">${ICONS.edit} Ubah</button><button class="danger" data-delete-handbook="${h.id}">${ICONS.trash} Hapus</button></div>`:''}</td></tr>`).join('')}
-        ${!filtered.length?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada handbook yang sesuai filter.</td></tr>`:''}
-      </tbody>
-    </table>
-  </div>`;
+  return '<div class="page-head" style="margin-bottom:20px;"><div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Technical Handbook</h1><p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Metode teknis &bull; '+filtered.length+' handbook</p></div><button class="btn btn-primary" data-add-handbook="1">+ Tambah Handbook</button></div>'
+  +'<div class="pm-toolbar" style="margin-bottom:16px;"><div class="pm-filters"><div class="search-box pm-search" style="min-width:220px;"><input type="text" id="thb-search-input" placeholder="Cari No.Dokumen / judul..." value="'+escAttr(S.thbSearch||'')+'"></div>'
+  +'<select id="thb-filter-directorate" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Direktorat</option>'+dirs.map(d=>'<option value="'+escAttr(d.id)+'" '+(dirF===d.id?'selected':'')+'>'+escHtml(d.name)+'</option>').join('')+'</select>'
+  +'<select id="thb-filter-division" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Divisi</option>'+divs.map(v=>'<option value="'+escAttr(v.id)+'" '+(divF===v.id?'selected':'')+'>'+escHtml(v.name)+'</option>').join('')+'</select>'
+  +'<select id="thb-filter-department" class="modal-inp" style="width:auto;padding:7px 10px;font-size:13px;"><option value="ALL">Semua Departemen</option>'+deps.map(dp=>'<option value="'+escAttr(dp.id)+'" '+(depF===dp.id?'selected':'')+'>'+escHtml(dp.name)+'</option>').join('')+'</select></div>'
+  +'<div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>'+filtered.length+'</b></div></div>'
+  +'<div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);"><table class="data-table" style="border:none;border-radius:0;min-width:1300px;"><thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Dokumen</th><th style="width:130px;">No.Dokumen</th><th style="width:120px;">Kategori</th><th style="width:160px;">Peruntukan</th><th style="width:80px;">Versi</th><th style="width:110px;">Status</th><th style="width:140px;">Direktorat</th><th style="width:140px;">Divisi</th><th style="width:140px;">Departemen</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead><tbody>'
+  +filtered.map((h,i)=>'<tr><td style="text-align:center;font-weight:600;">'+(i+1)+'</td><td><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-handbook="'+h.id+'">'+escHtml(h.name)+'</div></td><td style="font-family:monospace;font-weight:600;color:var(--primary);">'+escHtml(h.code)+'</td><td><span class="badge badge-division">'+escHtml(h.kategori||h.category||'-')+'</span></td><td style="font-size:12.5px;">'+escHtml(h.peruntukan||'-')+'</td><td>'+escHtml(h.version||'-')+'</td><td>'+docStatusBadge(h.status)+'</td><td style="font-size:12.5px;">'+escHtml(docDirectorateName(h.directorateId))+'</td><td style="font-size:12.5px;">'+escHtml(docDivisionName(h.divisionId))+'</td><td style="font-size:12.5px;">'+escHtml(docDepartmentName(h.departmentId))+'</td><td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;"><button class="btn-ghost btn-sm" style="padding:4px;" data-view-handbook="'+h.id+'">'+ICONS.eye+'</button><button class="kebab-btn" data-kebab="handbook:'+h.id+'">'+ICONS.kebab+'</button></div>'+(kebabOpen('handbook',h.id)?'<div class="kebab-menu"><button data-view-handbook="'+h.id+'">'+ICONS.eye+' Lihat</button><button data-edit-handbook="'+h.id+'">'+ICONS.edit+' Ubah</button><button class="danger" data-delete-handbook="'+h.id+'">'+ICONS.trash+' Hapus</button></div>':'')+'</td></tr>').join('')
+  +(!filtered.length?'<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada data.</td></tr>':'')
+  +'</tbody></table></div>';
 }
-
 function renderHandbookDetailPage(){
   seedDocsIfEmpty();
   const h=(S.handbooks||[]).find(x=>x.id===S.thbDetailId);
   if(!h) return '<div class="empty-state"><p>Handbook tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-handbook-list="1">Kembali</button></div>';
-  if(!h.chapters || !h.chapters.length){
-    h.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:h.summary||'-'}];
-    if(h.tools) h.chapters.push({id:'bab-'+uid(), title:'Alat dan Bahan', content:h.tools});
-    if(h.spec) h.chapters.push({id:'bab-'+uid(), title:'Spesifikasi', content:h.spec});
-    if(h.steps) h.chapters.push({id:'bab-'+uid(), title:'Langkah Kerja', content:h.steps});
-  }
-  return `
-  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-handbook-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar Handbook</button></div>
-  <div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
-    <div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-secondary btn-sm" data-export-pdf="handbook:${h.id}">Export PDF</button><button class="btn btn-secondary btn-sm" data-edit-handbook="${h.id}">${ICONS.edit} Ubah</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-handbook="${h.id}">${ICONS.trash} Hapus</button></div></div>
-    <div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">${escHtml(h.name)}</h1>${docStatusBadge(h.status)}</div>
-    <div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">${escHtml(docDirectorateName(h.directorateId))}</span><span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDivisionName(h.divisionId))}</span>${h.departmentId?`<span class="jd-org-sep">/</span><span class="jd-org-item">${escHtml(docDepartmentName(h.departmentId))}</span>`:''}</div>
-    <div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Kode</span><span class="jd-pill-val">${escHtml(h.code)}</span></span><span class="jd-pill"><span class="jd-pill-label">Kategori</span><span class="jd-pill-val">${escHtml(h.category||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">${escHtml(h.version||'-')}</span></span><span class="jd-pill"><span class="jd-pill-label">Bab</span><span class="jd-pill-val">${h.chapters.length}</span></span></div></div></div>
-  </div>
-  <div class="jd-section-card">
-    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;">Bab format pasti, judul dikunci. Klik bab untuk buka / tutup, ikon ✎ untuk ubah isi.</div>
-    ${renderChapterToggleList('handbook', h.id, h.chapters)}
-  </div>`;
+  if(!h.chapters||!h.chapters.length) h.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:'-'}];
+  return '<div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-handbook-list="1" style="padding-left:0;color:var(--ink-soft);">'+ICONS.back+' Kembali</button></div>'
+  +'<div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);"><div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-secondary btn-sm" data-edit-handbook="'+h.id+'">'+ICONS.edit+' Ubah</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-handbook="'+h.id+'">'+ICONS.trash+'</button></div></div>'
+  +'<div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">'+escHtml(h.name)+'</h1>'+docStatusBadge(h.status)+'</div><div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">'+escHtml(h.kategori||h.category||'-')+'</span><span class="jd-org-sep">/</span><span class="jd-org-item">'+escHtml(h.peruntukan||'-')+'</span><span class="jd-org-sep">/</span><span class="jd-org-item">'+escHtml(h.code)+'</span></div><div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">'+escHtml(h.version||'-')+'</span></span></div></div></div></div>'
+  +renderDocxEditor('handbook', h, {});
+}
+function renderKbPage(){
+  seedDocsIfEmpty();
+  const q=(S.kbSearch||'').toLowerCase().trim();
+  const filtered=(S.kbs||[]).filter(k=>{
+    if(q){
+      const hay=((k.name||'')+' '+(k.code||'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  return '<div class="page-head" style="margin-bottom:20px;"><div><h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Knowledge Base</h1><p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Dokumen pengetahuan &bull; '+filtered.length+' dokumen</p></div><button class="btn btn-primary" data-add-kb="1">+ Tambah Dokumen</button></div>'
+  +'<div class="pm-toolbar" style="margin-bottom:16px;"><div class="pm-filters"><div class="search-box pm-search" style="min-width:260px;"><input type="text" id="kb-search-input" placeholder="Cari No.Dokumen / nama..." value="'+escAttr(S.kbSearch||'')+'"></div></div>'
+  +'<div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>'+filtered.length+'</b></div></div>'
+  +'<div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);"><table class="data-table" style="border:none;border-radius:0;min-width:800px;"><thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Dokumen</th><th style="width:130px;">No.Dokumen</th><th style="width:80px;">Versi</th><th style="width:110px;">Status</th><th style="width:150px;">Last Update</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead><tbody>'
+  +filtered.map((k,i)=>'<tr><td style="text-align:center;font-weight:600;">'+(i+1)+'</td><td><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-kb="'+k.id+'">'+escHtml(k.name)+'</div></td><td style="font-family:monospace;font-weight:600;color:var(--primary);">'+escHtml(k.code)+'</td><td>'+escHtml(k.version||'-')+'</td><td>'+docStatusBadge(k.status)+'</td><td style="font-size:12px;">'+escHtml(k.updated||'-')+'</td><td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;"><button class="btn-ghost btn-sm" style="padding:4px;" data-view-kb="'+k.id+'">'+ICONS.eye+'</button><button class="kebab-btn" data-kebab="kb:'+k.id+'">'+ICONS.kebab+'</button></div>'+(kebabOpen('kb',k.id)?'<div class="kebab-menu"><button data-view-kb="'+k.id+'">'+ICONS.eye+' Lihat</button><button data-edit-kb="'+k.id+'">'+ICONS.edit+' Ubah</button><button class="danger" data-delete-kb="'+k.id+'">'+ICONS.trash+' Hapus</button></div>':'')+'</td></tr>').join('')
+  +(!filtered.length?'<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada data.</td></tr>':'')
+  +'</tbody></table></div>';
+}
+function renderKbDetailPage(){
+  seedDocsIfEmpty();
+  const k=(S.kbs||[]).find(x=>x.id===S.kbDetailId);
+  if(!k) return '<div class="empty-state"><p>Dokumen tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-kb-list="1">Kembali</button></div>';
+  if(!k.chapters||!k.chapters.length) k.chapters=[{id:'bab-pendahuluan', title:'Pendahuluan', content:'-'}];
+  return '<div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-kb-list="1" style="padding-left:0;color:var(--ink-soft);">'+ICONS.back+' Kembali ke Knowledge Base</button></div>'
+  +'<div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);"><div class="jd-header-nav"><div></div><div class="jd-header-actions"><button class="btn btn-secondary btn-sm" data-edit-kb="'+k.id+'">'+ICONS.edit+' Ubah</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-kb="'+k.id+'">'+ICONS.trash+'</button></div></div>'
+  +'<div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">'+escHtml(k.name)+'</h1>'+docStatusBadge(k.status)+'</div><div class="jd-header-meta"><div class="jd-org-trail"><span class="jd-org-item">'+escHtml(k.code)+'</span></div><div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Versi</span><span class="jd-pill-val">'+escHtml(k.version||'-')+'</span></span></div></div></div></div>'
+  +renderDocxEditor('kb', k, {});
 }
 
 function modalShell(title, body, foot, isWide = false){
@@ -5810,7 +6694,7 @@ function modalShell(title, body, foot, isWide = false){
       if (resKuartal) {
         initKuartalData(resKuartal);
       }
-      seedDocsIfEmpty();
+      try{ seedDocsIfEmpty(); }catch(e){}
       render();
     } catch(e) {
       console.log('Error loading json data:', e);
