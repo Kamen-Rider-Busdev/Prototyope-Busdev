@@ -35,14 +35,14 @@
         "label": "Knowledge Base",
         "desc": "Materi keilmuan, konsep, teori, referensi",
         "icon": "search",
-        "real": false
+        "real": true
       },
       {
         "key": "forms-records",
         "label": "Forms & Records",
         "desc": "Bukti pelaksanaan",
         "icon": "edit",
-        "real": false
+        "real": true
       }
     ]
   },
@@ -61,6 +61,27 @@
         "label": "Kuartal",
         "desc": "Pencapaian branch & target",
         "icon": "inbox",
+        "real": true
+      },
+      {
+        "key": "database-management",
+        "label": "Database Management",
+        "desc": "Kelola database & data master",
+        "icon": "database",
+        "real": true
+      },
+      {
+        "key": "database-project",
+        "label": "Database Project",
+        "desc": "Manajemen & perancangan database proyek",
+        "icon": "database",
+        "real": true
+      },
+      {
+        "key": "query-management",
+        "label": "Query Management",
+        "desc": "Eksekusi & pustaka query SQL",
+        "icon": "fileText",
         "real": true
       }
     ]
