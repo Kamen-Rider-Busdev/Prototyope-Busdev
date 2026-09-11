@@ -65,6 +65,7 @@
             S.dbView = 'databases'; S.dbActiveDb = null; S.dbActiveTable = null;
           } else if (key === 'database-project') {
             S.page = 'database-project';
+            S.dbProjectDetailId = null; S.dbProjectView = null; S.dbProjectActiveDb = null; S.dbProjectActiveTable = null; S.openKebab = null;
           } else if (key === 'query-management') {
             S.page = 'query-management';
           } else if (key === 'open-branch') {

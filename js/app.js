@@ -177,7 +177,15 @@
     dbPeruntukanFilter: 'ALL',
     dbProjectList: [],
     dbProjectSearch: '',
-    dbProjectDetailId: null
+    dbProjectDetailId: null,
+    dbProjectView: null,
+    dbProjectActiveDb: null,
+    dbProjectActiveTable: null,
+    queryList: [],
+    querySearch: '',
+    queryDetailId: null,
+    queryEditMode: false,
+    queryDraft: ''
   };
 
   function findDirectorate(id){ return S.directorates.find(d=>d.id===id); }
@@ -244,7 +252,7 @@
     createStandardMonitors, findDirectorate, findDivision, findDepartment,
     findJobRole, headOfDivisionRole, jobRoleContext, getFilteredDir, countJobRoles,
     docDirectorateName, docDivisionName, docDepartmentName, docDivisions, docDepartments, docStatusBadge, sopFlowchartSVG, seedDocsIfEmpty,
-    seedDbProjectsIfEmpty, ensureManualChapters, isChapterOpen, renderChapterToggleList, renderDocxEditor
+    seedDbProjectsIfEmpty, seedQueriesIfEmpty, ensureManualChapters, isChapterOpen, renderChapterToggleList, renderDocxEditor
   };
 
   window.S = S;
@@ -576,7 +584,7 @@ function renderDatabasePage(){
     </div>
     <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
       <table class="data-table" style="border:none;border-radius:0;min-width:800px;">
-        <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Tabel</th><th style="width:110px;text-align:center;">Atribut</th><th style="width:110px;text-align:center;">FK</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+        <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Tabel</th><th style="width:110px;text-align:center;">Atribut</th><th style="width:110px;text-align:center;">FK</th><th style="width:120px;text-align:right;">Aksi</th></tr></thead>
         <tbody>
           ${db.tables.map((tb,i)=>`
             <tr>
@@ -584,7 +592,9 @@ function renderDatabasePage(){
               <td><div style="font-weight:600;color:var(--ink);font-family:monospace;">${escHtml(tb.full)}</div><div style="font-size:11px;color:var(--ink-faint);">${escHtml(tb.name)}</div></td>
               <td style="text-align:center;"><span class="badge badge-staff">${tb.attrs.length}</span></td>
               <td style="text-align:center;">${tb.fkCols.length?`<span class="badge badge-lifecycle-pra-release">${tb.fkCols.length}</span>`:'<span style="color:var(--ink-faint);">0</span>'}</td>
-              <td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-db-view-attrs="${escAttr(tb.full)}">${ICONS.eye} Detail</button></td>
+              <td style="text-align:right;">
+                <button class="btn btn-secondary btn-sm" data-db-view-attrs="${escAttr(tb.full)}">${ICONS.eye} Detail</button>
+              </td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -714,7 +724,7 @@ function renderDatabasePage(){
     </div>`;
   }
   if(view==='manage'){
-    const scope = _scope;
+    const scope = S.dbEditorScope || 'overall';
     const isOverall = scope==='overall';
     const isEditing = S.dbCodeDraft!==null && S.dbCodeDraft!==undefined;
     const code = isEditing ? S.dbCodeDraft : generateDBMLForScope(scope);
@@ -833,24 +843,124 @@ function seedDbProjectsIfEmpty(){
   }
 }
 
+function renderDatabaseProjectDatabases(prj){
+  const linkedDbs = (typeof DB_MODEL !== 'undefined')
+    ? DB_MODEL.databases.filter(d => (prj.dbs || []).includes(d.name))
+    : [];
+  return `
+  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-dbproject-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Database Project</button></div>
+  <div class="page-head" style="margin-bottom:14px;">
+    <div>
+      <h1 style="font-size:20px;font-weight:700;margin:0 0 4px;">${escHtml(prj.name)}</h1>
+      <p style="margin:0;font-size:12.5px;color:var(--ink-soft);">${escHtml(prj.code)} &bull; ${linkedDbs.length} database &bull; view only</p>
+    </div>
+    <button class="btn btn-secondary btn-sm" data-view-dbproject="${prj.id}">${ICONS.eye} Lihat Diagram</button>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;min-width:800px;">
+      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Database</th><th style="width:100px;text-align:center;">Tipe</th><th style="width:110px;text-align:center;">Tables</th><th style="width:130px;text-align:center;">Attributes</th><th style="width:110px;text-align:center;">FK</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+      <tbody>
+        ${linkedDbs.map((db,i)=>{
+          const ac = db.tables.reduce((s,t)=>s+t.attrs.length,0);
+          const fc = db.tables.reduce((s,t)=>s+t.fkCols.length,0);
+          return `<tr>
+            <td style="text-align:center;font-weight:600;">${i+1}</td>
+            <td><div style="font-weight:700;color:var(--ink);font-family:monospace;font-size:13.5px;">${escHtml(db.name)}</div><div style="font-size:11px;color:var(--ink-faint);">${db.tables.length} tabel &bull; ${ac} kolom</div></td>
+            <td style="text-align:center;"><span class="badge badge-division">${escHtml(DB_MODEL.type)}</span></td>
+            <td style="text-align:center;font-weight:700;">${db.tables.length}</td>
+            <td style="text-align:center;">${ac}</td>
+            <td style="text-align:center;">${fc?`<span class="badge badge-lifecycle-pra-release">${fc}</span>`:'0'}</td>
+            <td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-view-dbproject-tables="${prj.id}|||${escAttr(db.name)}">${ICONS.eye} Detail</button></td>
+          </tr>`;
+        }).join('')}
+        ${!linkedDbs.length?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">Belum ada database terkait pada project ini.</td></tr>`:''}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderDatabaseProjectTables(prj, dbName){
+  const db = getDbByName(dbName);
+  if(!db) return `<div class="empty-state"><p>Database tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-view-dbproject-dbs="${prj.id}">Kembali</button></div>`;
+  return `
+  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-view-dbproject-dbs="${prj.id}" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Daftar Database</button></div>
+  <div class="page-head" style="margin-bottom:14px;">
+    <div>
+      <h1 style="font-size:20px;font-weight:700;margin:0 0 4px;">${escHtml(db.name)}</h1>
+      <p style="margin:0;font-size:12.5px;color:var(--ink-soft);">Project <b>${escHtml(prj.name)}</b> &bull; ${DB_MODEL.type} &bull; ${db.tables.length} tabel &bull; view only</p>
+    </div>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;min-width:800px;">
+      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Tabel</th><th style="width:110px;text-align:center;">Atribut</th><th style="width:110px;text-align:center;">FK</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+      <tbody>
+        ${db.tables.map((tb,i)=>`
+          <tr>
+            <td style="text-align:center;font-weight:600;">${i+1}</td>
+            <td><div style="font-weight:600;color:var(--ink);font-family:monospace;">${escHtml(tb.full)}</div><div style="font-size:11px;color:var(--ink-faint);">${escHtml(tb.name)}</div></td>
+            <td style="text-align:center;"><span class="badge badge-staff">${tb.attrs.length}</span></td>
+            <td style="text-align:center;">${tb.fkCols.length?`<span class="badge badge-lifecycle-pra-release">${tb.fkCols.length}</span>`:'<span style="color:var(--ink-faint);">0</span>'}</td>
+            <td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-view-dbproject-attrs="${prj.id}|||${escAttr(db.name)}|||${escAttr(tb.name)}">${ICONS.eye} Detail</button></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderDatabaseProjectAttrs(prj, dbName, tblName){
+  const tb = getTableByFull(dbName + '.' + tblName);
+  if(!tb) return `<div class="empty-state"><p>Tabel tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-view-dbproject-tables="${prj.id}|||${escAttr(dbName)}">Kembali</button></div>`;
+  return `
+  <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-view-dbproject-tables="${prj.id}|||${escAttr(dbName)}" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke ${escHtml(dbName)}</button></div>
+  <div class="page-head" style="margin-bottom:14px;">
+    <div>
+      <h1 style="font-size:20px;font-weight:700;margin:0 0 4px;">${escHtml(tb.full)}</h1>
+      <p style="margin:0;font-size:12.5px;color:var(--ink-soft);">Project <b>${escHtml(prj.name)}</b> &bull; ${tb.attrs.length} atribut &bull; ${tb.fkCols.length} foreign key &bull; view only</p>
+    </div>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;min-width:700px;">
+      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Atribut</th><th style="width:140px;">Tipe</th><th style="width:110px;text-align:center;">Key</th><th style="width:110px;text-align:center;">FK</th></tr></thead>
+      <tbody>
+        ${tb.attrs.map((c,i)=>`
+          <tr>
+            <td style="text-align:center;font-weight:600;">${i+1}</td>
+            <td style="font-family:monospace;font-weight:600;color:var(--ink);">${escHtml(c.name)}</td>
+            <td><span class="badge badge-staff">${escHtml(c.type)}</span></td>
+            <td style="text-align:center;">${c.pk?'<span class="badge badge-division">PK</span>':'<span style="color:var(--ink-faint);">-</span>'}</td>
+            <td style="text-align:center;">${c.fk?'<span class="badge badge-lifecycle-pra-release">FK</span>':'<span style="color:var(--ink-faint);">-</span>'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
 function renderDatabaseProjectDetailDiagram(prj){
-  const scope = prj.id;
+  let scope = S.dbEditorScope || 'overall';
+  if (scope === 'overall' && (prj.dbs || []).length === 1) {
+    scope = prj.dbs[0];
+  }
   const zoom = (S.dbEditorZoomMap && S.dbEditorZoomMap[scope]) ? S.dbEditorZoomMap[scope] : (S.dbEditorZoom || 100);
 
   const linkedDbs = (typeof DB_MODEL !== 'undefined')
     ? DB_MODEL.databases.filter(d => (prj.dbs || []).includes(d.name))
     : [];
 
+  const targetDbs = (scope !== 'overall')
+    ? linkedDbs.filter(d => d.name === scope)
+    : linkedDbs;
+
   const visualTables = [];
-  linkedDbs.forEach(d => d.tables.forEach(tb => visualTables.push({ db: d.name, tb })));
+  targetDbs.forEach(d => d.tables.forEach(tb => visualTables.push({ db: d.name, tb })));
 
   if(!S.dbBoxPositions) S.dbBoxPositions={};
-  const dbCols = 2, dbGapX = 24, dbGapY = 24;
+  const dbCols = scope !== 'overall' ? 1 : 2, dbGapX = 24, dbGapY = 24;
   const baseDbW = 520, baseDbH = 320;
-  linkedDbs.forEach((d, idx) => {
-    if(!S.dbBoxPositions[scope + ':' + d.name]){
+  targetDbs.forEach((d, idx) => {
+    const keyPos = scope + ':' + d.name;
+    if(!S.dbBoxPositions[keyPos]){
       const col = idx % dbCols, row = Math.floor(idx / dbCols);
-      S.dbBoxPositions[scope + ':' + d.name] = {
+      S.dbBoxPositions[keyPos] = {
         x: col * (baseDbW + dbGapX),
         y: row * (baseDbH + dbGapY),
         w: baseDbW,
@@ -861,7 +971,7 @@ function renderDatabaseProjectDetailDiagram(prj){
 
   if(!S.dbPositions) S.dbPositions={};
   if(!S.dbPositions[scope]) S.dbPositions[scope]={};
-  linkedDbs.forEach(d => {
+  targetDbs.forEach(d => {
     const cols = 3, cardW = 220, gapX = 12, cardH = 150, gapY = 12;
     d.tables.forEach((tb, j) => {
       const key = tb.full;
@@ -876,7 +986,7 @@ function renderDatabaseProjectDetailDiagram(prj){
   const allRels = (typeof DB_REFS !== 'undefined' ? DB_REFS : []).filter(r => visFulls.has(r.srcDbTbl) && visFulls.has(r.dstDbTbl));
 
   let maxX = 0, maxY = 0;
-  linkedDbs.forEach(d => {
+  targetDbs.forEach(d => {
     const pos = S.dbBoxPositions[scope + ':' + d.name];
     if(pos){
       maxX = Math.max(maxX, pos.x + pos.w);
@@ -917,7 +1027,7 @@ function renderDatabaseProjectDetailDiagram(prj){
       <div class="jd-header-meta">
         <div class="jd-org-trail">
           <span class="jd-org-item">Database Terkait:</span>
-          ${(prj.dbs || []).map(d => `<span class="badge badge-division" style="margin-right:4px; font-family:monospace;">${escHtml(d)}</span>`).join('')}
+          ${(prj.dbs || []).map(d => `<span class="badge badge-division" style="margin-right:4px; font-family:monospace; cursor:pointer;" data-db-diagram-scope="${escAttr(d)}">${escHtml(d)}</span>`).join('')}
         </div>
         <div class="jd-meta-pills">
           <span class="jd-pill"><span class="jd-pill-label">Total Tabel</span><span class="jd-pill-val">${visualTables.length}</span></span>
@@ -930,7 +1040,7 @@ function renderDatabaseProjectDetailDiagram(prj){
 
   <div style="border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--dept-bg); overflow:hidden; box-shadow:var(--shadow-card);">
     <div style="display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:3;">
-      <span style="font-weight:700; font-size:13px;">Visual ERD Project — ${escHtml(prj.name)} (${linkedDbs.length} DB, ${visualTables.length} Tabel)</span>
+      <span style="font-weight:700; font-size:13px;">Visual ERD Project — ${escHtml(prj.name)} (${targetDbs.length} DB, ${visualTables.length} Tabel)</span>
       <span style="font-size:11px; color:var(--ink-faint);">drag kotak database &amp; tabel — view only</span>
       <span style="margin-left:auto; display:flex; align-items:center; gap:6px;">
         <button class="btn btn-ghost btn-sm" data-db-auto-layout="${escAttr(scope)}" title="Rapikan otomatis">⟲ Auto Layout</button>
@@ -945,7 +1055,7 @@ function renderDatabaseProjectDetailDiagram(prj){
           <defs><marker id="dbArrowPrj" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#A9793F"/></marker></defs>
           ${svgLines}
         </svg>
-        ${linkedDbs.map(d => {
+        ${targetDbs.map(d => {
           const pos = S.dbBoxPositions[scope + ':' + d.name] || { x: 0, y: 0, w: 520, h: 320 };
           const tables = d.tables;
           return `
@@ -965,7 +1075,7 @@ function renderDatabaseProjectDetailDiagram(prj){
                   </div>
                   <div style="max-height:110px; overflow:auto;">
                     ${tb.attrs.slice(0, 5).map(c => `
-                      <div style="display:flex; align-items:center; gap:4px; padding:3px 8px; font-size:10px; font-family:monospace; border-bottom:1px solid var(--border);">
+                      <div style="display:flex;align-items:center; gap:4px; padding:3px 8px; font-size:10px; font-family:monospace; border-bottom:1px solid var(--border);">
                         <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(c.name)}</span>
                         <span style="color:var(--ink-faint); font-size:9px;">${escHtml(c.type)}</span>
                         ${c.pk ? '<span class="badge badge-division" style="font-size:8px; padding:1px 3px;">PK</span>' : ''}
@@ -996,6 +1106,10 @@ function renderDatabaseProjectPage() {
     if (!prj) {
       return `<div class="empty-state"><p>Project tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-dbproject-list="1">Kembali</button></div>`;
     }
+    const sub = S.dbProjectView || 'diagram';
+    if (sub === 'dbs') return renderDatabaseProjectDatabases(prj);
+    if (sub === 'tables' && S.dbProjectActiveDb) return renderDatabaseProjectTables(prj, S.dbProjectActiveDb);
+    if (sub === 'attrs' && S.dbProjectActiveDb && S.dbProjectActiveTable) return renderDatabaseProjectAttrs(prj, S.dbProjectActiveDb, S.dbProjectActiveTable);
     return renderDatabaseProjectDetailDiagram(prj);
   }
 
@@ -1040,7 +1154,6 @@ function renderDatabaseProjectPage() {
         <tr>
           <th style="width:45px; text-align:center;">No</th>
           <th>Nama Project</th>
-          <th style="width:130px;">Kode Project</th>
           <th style="min-width:220px;">Database Terkait</th>
           <th style="width:110px; text-align:center;">Total Tabel</th>
           <th style="width:150px;">Last Update</th>
@@ -1061,7 +1174,6 @@ function renderDatabaseProjectPage() {
               <div style="font-weight:600; color:var(--ink); cursor:pointer;" data-view-dbproject="${p.id}">${escHtml(p.name)}</div>
               ${p.description ? `<div style="font-size:11.5px; color:var(--ink-soft); max-width:380px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(p.description)}</div>` : ''}
             </td>
-            <td style="font-family:monospace; font-weight:600; color:var(--primary);">${escHtml(p.code)}</td>
             <td>
               <div style="display:flex; gap:4px; flex-wrap:wrap;">
                 ${(p.dbs || []).map(dbName => `<span class="badge badge-division" style="font-family:monospace; font-size:11px;">${escHtml(dbName)}</span>`).join('')}
@@ -1070,12 +1182,12 @@ function renderDatabaseProjectPage() {
             <td style="text-align:center; font-weight:700;">${totalTables}</td>
             <td style="font-size:12px; color:var(--ink-soft);">${escHtml(p.updated || '-')}</td>
             <td style="text-align:right; position:relative;">
-              <div style="display:inline-flex; gap:4px;">
-                <button class="btn btn-secondary btn-sm" style="padding:4px 8px; font-size:11.5px;" data-view-dbproject="${p.id}">${ICONS.eye} Lihat Diagram</button>
+              <div style="display:inline-flex; gap:4px; justify-content:flex-end;">
                 <button class="kebab-btn" data-kebab="dbproject:${p.id}">${ICONS.kebab}</button>
               </div>
               ${kebabOpen('dbproject', p.id) ? `
               <div class="kebab-menu" style="right:14px;">
+                <button data-view-dbproject-dbs="${p.id}">${ICONS.eye} Lihat Database</button>
                 <button data-view-dbproject="${p.id}">${ICONS.eye} Lihat Diagram</button>
                 <button data-edit-dbproject="${p.id}">${ICONS.edit} Ubah Project</button>
                 <button class="danger" data-delete-dbproject="${p.id}">${ICONS.trash} Hapus Project</button>
@@ -1083,24 +1195,77 @@ function renderDatabaseProjectPage() {
             </td>
           </tr>`;
         }).join('')}
-        ${!filtered.length ? `<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--ink-faint);">Tidak ada project yang sesuai filter.</td></tr>` : ''}
+        ${!filtered.length ? `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--ink-faint);">Tidak ada project yang sesuai filter.</td></tr>` : ''}
       </tbody>
     </table>
   </div>
   `;
 }
+function seedQueriesIfEmpty(){
+  if(!S.queryList || !S.queryList.length){
+    S.queryList = [
+      {id:'qry-001', name:'Cek pelanggan aktif per branch', sql:'SELECT b.branch_name, COUNT(c.id) AS total_aktif\nFROM griya_company.branches b\nLEFT JOIN griya_customers.customers c ON c.branch_id = b.id\nWHERE c.subscribe_status = \'aktif\'\nGROUP BY b.branch_name\nORDER BY total_aktif DESC;', updated:'28 Agu 2026', updatedBy:'NOC'},
+      {id:'qry-002', name:'Daftar ODC belum QC', sql:'SELECT o.id_olt, o.branch_id, o.host_backup\nFROM griya_coverage.olts o\nLEFT JOIN griya_coverage.olts_ports p ON p.olt_id = o.id_olt\nWHERE p.id_olt_port IS NULL;', updated:'20 Agu 2026', updatedBy:'BQG'},
+      {id:'qry-003', name:'Stok modem per branch', sql:'SELECT branch_id, status, COUNT(*) AS qty\nFROM griya_warehouse.modems\nGROUP BY branch_id, status;', updated:'15 Agu 2026', updatedBy:'Warehouse'}
+    ];
+  }
+}
 function renderQueryManagementPage(){
+  seedQueriesIfEmpty();
+  if(S.queryDetailId){
+    const q=(S.queryList||[]).find(x=>x.id===S.queryDetailId);
+    if(!q) return `<div class="empty-state"><p>Query tidak ditemukan.</p><button class="btn btn-secondary btn-sm" data-back-to-query-list="1">Kembali</button></div>`;
+    const editing = !!S.queryEditMode;
+    return `
+    <div style="margin-bottom:12px;"><button class="btn btn-ghost btn-sm" data-back-to-query-list="1" style="padding-left:0;color:var(--ink-soft);">${ICONS.back} Kembali ke Query Management</button></div>
+    <div class="jd-sticky-top-area" style="position:static;margin:0 0 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
+      <div class="jd-header-nav"><div></div><div class="jd-header-actions">
+        ${editing
+          ? `<button class="btn btn-secondary btn-sm" data-cancel-query-edit="1">Batal</button><button class="btn btn-primary btn-sm" data-save-query-edit="${q.id}">Simpan</button>`
+          : `<button class="btn btn-secondary btn-sm" data-edit-query-text="${q.id}">${ICONS.edit} Ubah Query</button><button class="btn btn-secondary btn-sm" data-edit-query="${q.id}">${ICONS.edit} Ubah Info</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-query="${q.id}">${ICONS.trash} Hapus</button>`}
+      </div></div>
+      <div class="jd-header-main"><div class="jd-header-title-row"><h1 class="jd-header-title">${escHtml(q.name)}</h1></div>
+      <div class="jd-header-meta"><div class="jd-meta-pills"><span class="jd-pill"><span class="jd-pill-label">Update</span><span class="jd-pill-val">${escHtml(q.updated||'-')}</span></span></div></div></div>
+    </div>
+    <div class="jd-section-card">
+      <div class="jd-section-head"><span class="num">SQL</span><h2>Query Editor</h2>${editing?'':`<span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">klik Ubah Query untuk edit</span>`}</div>
+      ${editing
+        ? `<textarea data-query-textarea="${q.id}" spellcheck="false" style="width:100%;min-height:320px;border:1px solid var(--border);border-radius:8px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;resize:vertical;outline:none;background:var(--surface);color:var(--ink);white-space:pre;">${escHtml(S.queryDraft)}</textarea>`
+        : `<pre style="margin:0;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;white-space:pre-wrap;background:var(--dept-bg);border:1px solid var(--border);border-radius:8px;color:var(--ink);overflow:auto;max-height:480px;">${escHtml(q.sql||'-')}</pre>`}
+    </div>`;
+  }
+  const qq=(S.querySearch||'').toLowerCase().trim();
+  const filtered=(S.queryList||[]).filter(x=>{
+    if(!qq) return true;
+    return ((x.name||'')+' '+(x.sql||'')).toLowerCase().includes(qq);
+  });
   return `
   <div class="page-head" style="margin-bottom:20px;">
     <div>
       <h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">Query Management</h1>
-      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Eksekusi &amp; pustaka query SQL &bull; Strategic Growth & Product</p>
+      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Pustaka query SQL berdasarkan kegunaan &bull; ${filtered.length} query</p>
     </div>
+    <button class="btn btn-primary" data-add-query="1">+ Tambah Query</button>
   </div>
-  <div class="placeholder-panel">
-    <div class="icon">${ICONS.fileText}</div>
-    <h3>Coming Soon</h3>
-    <p>Modul Query Management sedang dalam tahap penyusunan dan akan segera tersedia pada rilis berikutnya.</p>
+  <div class="pm-toolbar" style="margin-bottom:16px;">
+    <div class="pm-filters"><div class="search-box pm-search" style="min-width:260px;"><input type="text" id="query-search-input" placeholder="Cari nama / isi query..." value="${escAttr(S.querySearch||'')}"></div></div>
+    <div style="font-size:12.5px;color:var(--ink-faint);">Menampilkan <b>${filtered.length}</b> dari ${(S.queryList||[]).length}</div>
+  </div>
+  <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);">
+    <table class="data-table" style="border:none;border-radius:0;min-width:800px;">
+      <thead><tr><th style="width:45px;text-align:center;">No</th><th>Nama Query</th><th style="width:150px;">Last Update</th><th style="width:90px;text-align:right;">Aksi</th></tr></thead>
+      <tbody>
+        ${filtered.map((x,i)=>`
+          <tr>
+            <td style="text-align:center;font-weight:600;">${i+1}</td>
+            <td><div style="font-weight:600;color:var(--ink);cursor:pointer;" data-view-query="${x.id}">${escHtml(x.name)}</div><div style="font-size:11px;color:var(--ink-faint);font-family:monospace;max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml((x.sql||'').split('\n')[0]||'')}</div></td>
+            <td style="font-size:12px;color:var(--ink-soft);">${escHtml(x.updated||'-')}</td>
+            <td style="text-align:right;position:relative;"><div style="display:inline-flex;gap:4px;"><button class="btn-ghost btn-sm" style="padding:4px;" data-view-query="${x.id}" title="Lihat">${ICONS.eye}</button><button class="kebab-btn" data-kebab="query:${x.id}">${ICONS.kebab}</button></div>
+            ${kebabOpen('query',x.id)?`<div class="kebab-menu"><button data-view-query="${x.id}">${ICONS.eye} Lihat Query</button><button data-edit-query="${x.id}">${ICONS.edit} Ubah</button><button class="danger" data-delete-query="${x.id}">${ICONS.trash} Hapus</button></div>`:''}</td>
+          </tr>`).join('')}
+        ${!filtered.length?`<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--ink-faint);">Tidak ada query yang sesuai.</td></tr>`:''}
+      </tbody>
+    </table>
   </div>`;
 }
 
@@ -4698,15 +4863,12 @@ function renderModal(){
 
   if(m.kind==='addDbProject' || m.kind==='editDbProject'){
     const isEdit=m.kind==='editDbProject';
-    const prj=isEdit?(S.dbProjectList||[]).find(x=>x.id===m.id):{code:'PRJ-DB-'+Math.floor(100+Math.random()*900), name:'', description:'', dbs:['griya_company']};
+    const prj=isEdit?(S.dbProjectList||[]).find(x=>x.id===m.id):{code:'', name:'', description:'', dbs:['griya_company']};
     const allDbs=(typeof DB_MODEL!=='undefined'?DB_MODEL.databases:[]);
     return modalShell(isEdit?'Ubah Database Project':'Tambah Database Project Baru', `
       <div class="modal-context">Kelola pemetaan database yang dibutuhkan oleh proyek ini.</div>
       <div style="display:flex;flex-direction:column;gap:14px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="field"><label>Kode Project*</label><input class="modal-inp" id="dbprj-code" value="${escAttr(prj.code||'')}"></div>
-          <div class="field"><label>Nama Project*</label><input class="modal-inp" id="dbprj-name" value="${escAttr(prj.name||'')}" placeholder="mis. Pengembangan Sistem Branch Kediri"></div>
-        </div>
+        <div class="field"><label>Nama Project*</label><input class="modal-inp" id="dbprj-name" value="${escAttr(prj.name||'')}" placeholder="mis. Pengembangan Sistem Branch Kediri"></div>
         <div class="field"><label>Deskripsi Project</label><textarea id="dbprj-desc" style="min-height:70px;">${escHtml(prj.description||'')}</textarea></div>
         <div class="field">
           <label style="margin-bottom:8px;display:block;font-weight:600;">Pilih Database Terkait*</label>
@@ -4725,7 +4887,16 @@ function renderModal(){
   }
   if(m.kind==='deleteDbProject'){
     const prj=(S.dbProjectList||[]).find(x=>x.id===m.id);
-    return modalShell('Hapus Database Project?', `<p style="font-size:14px;margin:0;">Apakah Anda yakin ingin menghapus project <b>${escHtml(prj?prj.name:'')}</b> (${escHtml(prj?prj.code:'')})?</p><div class="delete-warning">Catatan: Data database asli tidak akan terhapus, hanya pemetaan project ini yang dihapus.</div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-dbproject="${m.id}">${ICONS.trash} Hapus</button>`);
+    return modalShell('Hapus Database Project?', `<p style="font-size:14px;margin:0;">Apakah Anda yakin ingin menghapus project <b>${escHtml(prj?prj.name:'')}</b>?</p><div class="delete-warning">Catatan: Data database asli tidak akan terhapus, hanya pemetaan project ini yang dihapus.</div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-dbproject="${m.id}">${ICONS.trash} Hapus</button>`);
+  }
+  if(m.kind==='addQuery' || m.kind==='editQuery'){
+    const isEdit=m.kind==='editQuery';
+    const q=isEdit?(S.queryList||[]).find(x=>x.id===m.id):{name:'', sql:'SELECT *\nFROM '};
+    return modalShell(isEdit?'Ubah Query':'Tambah Query Baru', `<div class="modal-context">Tulis nama kegunaan query dan SQL-nya. Query dapat diedit lagi dari textarea di halaman detail.</div><div class="field"><label>Nama Query (kegunaan)*</label><input class="modal-inp" id="query-name" value="${escAttr(q.name||'')}" placeholder="mis. Cek pelanggan aktif per branch"></div><div class="field"><label>SQL Query*</label><textarea id="query-sql" style="min-height:180px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;" placeholder="SELECT ...">${escHtml(q.sql||'')}</textarea></div>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-primary" data-save-query="${isEdit?q.id:''}">Simpan</button>`, true);
+  }
+  if(m.kind==='deleteQuery'){
+    const q=(S.queryList||[]).find(x=>x.id===m.id);
+    return modalShell('Hapus Query?', `<p style="font-size:14px;margin:0;">Hapus query <b>${escHtml(q?q.name:'')}</b>?</p>`, `<button class="btn btn-secondary" data-close-modal>Batal</button><button class="btn btn-danger" data-confirm-delete-query="${m.id}">${ICONS.trash} Hapus</button>`);
   }
 
   if(m.kind==='addManual' || m.kind==='editManual'){

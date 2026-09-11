@@ -24,10 +24,69 @@
       if (!S.page) return;
       var isDb = S.page === 'database-management';
       var isDbPrj = S.page === 'database-project';
+      var isQuery = S.page === 'query-management';
       var active = (S.page === 'governance-quality-manual' || S.page === 'governance-quality-manual-detail'
         || S.page === 'sop' || S.page === 'sop-detail'
         || S.page === 'technical-handbook' || S.page === 'technical-handbook-detail'
-        || S.page === 'knowledge-base' || S.page === 'knowledge-base-detail' || isDb || isDbPrj);
+        || S.page === 'knowledge-base' || S.page === 'knowledge-base-detail' || isDb || isDbPrj || isQuery);
+
+      if(isQuery){
+        if(window.App && window.App.seedQueriesIfEmpty){ try{ window.App.seedQueriesIfEmpty(); }catch(e){} }
+        var qSearch = document.getElementById('query-search-input');
+        if(qSearch) qSearch.oninput = function(e){ S.querySearch = e.target.value; render(); };
+        bind(root, '[data-view-query]', function(el){
+          S.queryDetailId = el.dataset.viewQuery;
+          S.queryEditMode = false; S.queryDraft = '';
+          S.openKebab = null; render();
+          var scq = document.getElementById('main-scroll-content'); if(scq) scq.scrollTop=0;
+        });
+        bind(root, '[data-back-to-query-list]', function(){
+          S.queryDetailId = null; S.queryEditMode = false; S.queryDraft = '';
+          render();
+        });
+        bind(root, '[data-add-query]', function(){ S.modal = { kind: 'addQuery' }; S.openKebab = null; render(); });
+        bind(root, '[data-edit-query]', function(el){ S.modal = { kind: 'editQuery', id: el.dataset.editQuery }; S.openKebab = null; render(); });
+        bind(root, '[data-delete-query]', function(el){ S.modal = { kind: 'deleteQuery', id: el.dataset.deleteQuery }; S.openKebab = null; render(); });
+        bind(root, '[data-save-query]', function(el){
+          var editId = el.dataset.saveQuery;
+          var name = val('query-name');
+          var sql = (document.getElementById('query-sql')||{}).value || '';
+          sql = sql.trim();
+          if(!name || !sql){ alert('Nama query dan SQL wajib diisi.'); return; }
+          if(editId){
+            var q = (S.queryList||[]).find(function(x){ return x.id===editId; });
+            if(q){ q.name = name; q.sql = sql; q.updated = App.getCurrentDateTime(); }
+          } else {
+            if(!S.queryList) S.queryList = [];
+            S.queryList.unshift({ id: 'qry-' + App.uid(), name: name, sql: sql, updated: App.getCurrentDateTime() });
+          }
+          S.modal = null; render();
+        });
+        bind(root, '[data-confirm-delete-query]', function(el){
+          var id = el.dataset.confirmDeleteQuery;
+          S.queryList = (S.queryList||[]).filter(function(x){ return x.id!==id; });
+          if(S.queryDetailId===id){ S.queryDetailId = null; S.queryEditMode = false; S.queryDraft = ''; }
+          S.modal = null; render();
+        });
+        bind(root, '[data-edit-query-text]', function(el){
+          var q = (S.queryList||[]).find(function(x){ return x.id===el.dataset.editQueryText; });
+          if(!q) return;
+          S.queryEditMode = true; S.queryDraft = q.sql || '';
+          render();
+          setTimeout(function(){ var ta = root.querySelector('[data-query-textarea]'); if(ta){ try{ta.focus();}catch(e){} } }, 60);
+        });
+        bind(root, '[data-cancel-query-edit]', function(){ S.queryEditMode = false; S.queryDraft = ''; render(); });
+        bind(root, '[data-save-query-edit]', function(el){
+          var q = (S.queryList||[]).find(function(x){ return x.id===el.dataset.saveQueryEdit; });
+          var ta = root.querySelector('[data-query-textarea]');
+          var text = ta ? ta.value : S.queryDraft;
+          if(!text || !text.trim()){ alert('Query tidak boleh kosong.'); return; }
+          if(q){ q.sql = text; q.updated = App.getCurrentDateTime(); }
+          S.queryEditMode = false; S.queryDraft = ''; render();
+        });
+        var qTa = root.querySelector('[data-query-textarea]');
+        if(qTa){ qTa.oninput = function(e){ S.queryDraft = e.target.value; }; }
+      }
 
       if(isDbPrj){
         var dbPrjSearch = document.getElementById('dbprj-search-input');
@@ -35,11 +94,43 @@
 
         bind(root, '[data-view-dbproject]', function(el){
           S.dbProjectDetailId = el.dataset.viewDbproject;
+          S.dbProjectView = 'diagram';
+          S.dbProjectActiveDb = null;
+          S.dbProjectActiveTable = null;
           S.openKebab = null; render();
           var sc = document.getElementById('main-scroll-content'); if(sc) sc.scrollTop=0;
         });
+        bind(root, '[data-view-dbproject-dbs]', function(el){
+          S.dbProjectDetailId = el.dataset.viewDbprojectDbs;
+          S.dbProjectView = 'dbs';
+          S.dbProjectActiveDb = null;
+          S.dbProjectActiveTable = null;
+          S.openKebab = null; render();
+          var sc2 = document.getElementById('main-scroll-content'); if(sc2) sc2.scrollTop=0;
+        });
+        bind(root, '[data-view-dbproject-tables]', function(el){
+          var parts = (el.dataset.viewDbprojectTables||'').split('|||');
+          S.dbProjectDetailId = parts[0];
+          S.dbProjectActiveDb = parts[1];
+          S.dbProjectActiveTable = null;
+          S.dbProjectView = 'tables';
+          S.openKebab = null; render();
+          var sc3 = document.getElementById('main-scroll-content'); if(sc3) sc3.scrollTop=0;
+        });
+        bind(root, '[data-view-dbproject-attrs]', function(el){
+          var parts = (el.dataset.viewDbprojectAttrs||'').split('|||');
+          S.dbProjectDetailId = parts[0];
+          S.dbProjectActiveDb = parts[1];
+          S.dbProjectActiveTable = parts[2];
+          S.dbProjectView = 'attrs';
+          S.openKebab = null; render();
+          var sc4 = document.getElementById('main-scroll-content'); if(sc4) sc4.scrollTop=0;
+        });
         bind(root, '[data-back-to-dbproject-list]', function(){
           S.dbProjectDetailId = null;
+          S.dbProjectView = null;
+          S.dbProjectActiveDb = null;
+          S.dbProjectActiveTable = null;
           render();
         });
         bind(root, '[data-add-dbproject]', function(){
@@ -56,7 +147,6 @@
         });
         bind(root, '[data-save-dbproject]', function(el){
           var editId = el.dataset.saveDbproject;
-          var code = val('dbprj-code');
           var name = val('dbprj-name');
           var desc = val('dbprj-desc');
           var checkedDbs = [];
@@ -64,8 +154,8 @@
             checkedDbs.push(cb.value);
           });
 
-          if (!name || !code) {
-            alert('Nama Project dan Kode Project wajib diisi.');
+          if (!name) {
+            alert('Nama Project wajib diisi.');
             return;
           }
           if (!checkedDbs.length) {
@@ -76,7 +166,6 @@
           if (editId) {
             var prj = (S.dbProjectList || []).find(function (x) { return x.id === editId; });
             if (prj) {
-              prj.code = code;
               prj.name = name;
               prj.description = desc;
               prj.dbs = checkedDbs;
@@ -87,7 +176,7 @@
             if (!S.dbProjectList) S.dbProjectList = [];
             S.dbProjectList.unshift({
               id: 'dbprj-' + App.uid(),
-              code: code,
+              code: '',
               name: name,
               description: desc,
               dbs: checkedDbs,
@@ -103,6 +192,9 @@
           S.dbProjectList = (S.dbProjectList || []).filter(function (x) { return x.id !== id; });
           if (S.dbProjectDetailId === id) {
             S.dbProjectDetailId = null;
+            S.dbProjectView = null;
+            S.dbProjectActiveDb = null;
+            S.dbProjectActiveTable = null;
           }
           S.modal = null;
           render();
